@@ -25,7 +25,7 @@ export async function renderGallery(container) {
     container.innerHTML = `
       <div class="gallery fade-in">
         <header class="gallery-header">
-          <h1 class="gallery-title">AI Dialogues</h1>
+          <h1 class="gallery-title">Open Dialogues</h1>
           <p class="gallery-subtitle">
             A gallery of the most interesting, beautiful, and intelligent conversations with AI
           </p>
