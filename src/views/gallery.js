@@ -40,14 +40,27 @@ export async function renderGallery(container) {
           </div>
         ` : ''}
 
-        ${tags.length > 0 ? `
-          <div class="gallery-filters">
-            <button class="filter-pill ${!activeTag ? 'active' : ''}" data-tag="">All topics</button>
-            ${tags.map(tag => `
-              <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
-            `).join('')}
-          </div>
-        ` : ''}
+        ${tags.length > 0 ? (() => {
+          const MAX_VISIBLE = 6;
+          const visibleTags = tags.slice(0, MAX_VISIBLE);
+          const hiddenTags = tags.slice(MAX_VISIBLE);
+          return `
+            <div class="gallery-filters">
+              <button class="filter-pill ${!activeTag ? 'active' : ''}" data-tag="">All topics</button>
+              ${visibleTags.map(tag => `
+                <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
+              `).join('')}
+              ${hiddenTags.length > 0 ? `
+                <button class="filter-pill more-topics-btn" id="more-topics-btn">+ ${hiddenTags.length} more</button>
+                <div class="more-topics-wrap" id="more-topics" style="display:none; width:100%; margin-top:0.25rem;">
+                  ${hiddenTags.map(tag => `
+                    <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        })() : ''}
 
         ${filtered.length > 0 ? `
           <div class="card-list">
@@ -69,6 +82,19 @@ export async function renderGallery(container) {
         render();
       });
     });
+
+    // More topics toggle
+    const moreBtn = container.querySelector('#more-topics-btn');
+    const moreWrap = container.querySelector('#more-topics');
+    if (moreBtn && moreWrap) {
+      moreBtn.addEventListener('click', () => {
+        const visible = moreWrap.style.display !== 'none';
+        moreWrap.style.display = visible ? 'none' : 'flex';
+        moreBtn.textContent = visible
+          ? `+ ${moreWrap.querySelectorAll('[data-tag]').length} more`
+          : 'Less';
+      });
+    }
 
     // Bind tag filter clicks
     container.querySelectorAll('[data-tag]').forEach(pill => {

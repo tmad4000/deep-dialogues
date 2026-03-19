@@ -253,6 +253,17 @@ main#app {
   border-color: var(--ink);
 }
 
+.more-topics-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.more-topics-btn {
+  color: var(--accent-ai) !important;
+  border-color: var(--accent-ai-soft) !important;
+}
+
 /* Conversation Cards */
 .card-list {
   display: flex;
