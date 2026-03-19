@@ -1,19 +1,41 @@
 import { parseConversation } from '../lib/parser.js';
 import { submitConversation } from '../lib/store.js';
+import { fetchShareLink } from '../lib/fetcher.js';
 
 const PASTE_PLACEHOLDER = `Paste a conversation here...\n\nFormat: each message starts with a role label like:\n\nHuman: What is consciousness?\n\nClaude: That depends on what framework...\n\nOr upload a JSONL file from Claude Code.`;
 
 export function renderSubmit(container) {
   let parsed = null;
-  let activeTab = 'paste';
+  let activeTab = 'link';
   let submitting = false;
   let submitted = false;
+  let fetching = false;
+  let fetchError = null;
 
   function render() {
     if (submitted) {
       renderSuccess();
       return;
     }
+
+    const linkTabHTML = `
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label class="form-label">Share link</label>
+        <input class="form-input" id="link-input" type="url"
+          placeholder="https://claude.ai/share/... or https://chatgpt.com/share/..."
+          style="font-family: var(--font-mono); font-size: 0.85rem;">
+      </div>
+      ${fetchError ? `<p style="color: var(--accent-feature); font-size: 0.85rem; margin-bottom: 1rem;">${fetchError}</p>` : ''}
+      <div class="submit-actions">
+        <button class="btn-primary" id="fetch-btn" ${fetching ? 'disabled' : ''}>
+          ${fetching ? 'Fetching...' : 'Fetch conversation'}
+        </button>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--ink-30); margin-top: 0.75rem;">
+        Supports Claude, ChatGPT, and other AI share links.
+        If auto-fetch doesn't work, copy the conversation text and use the "Paste text" tab.
+      </p>
+    `;
 
     const pasteTabHTML = `
       <textarea class="paste-area" id="paste-input" placeholder="${PASTE_PLACEHOLDER.replace(/"/g, '&quot;')}"></textarea>
@@ -31,22 +53,27 @@ export function renderSubmit(container) {
       </div>
     `;
 
+    const tabContent = activeTab === 'link' ? linkTabHTML
+      : activeTab === 'paste' ? pasteTabHTML
+      : fileTabHTML;
+
     container.innerHTML = `
       <div class="submit fade-in">
         <header class="submit-header">
           <h1 class="submit-title">Upload a Conversation</h1>
           <p class="submit-subtitle">
             Upload an interesting, beautiful, or illuminating AI conversation.
-            Paste the text, upload a file, or just drop it in.
+            Paste a share link, paste the text, or upload a file.
           </p>
         </header>
 
         <div class="submit-tabs">
+          <button class="submit-tab ${activeTab === 'link' ? 'active' : ''}" data-tab="link">Paste link</button>
           <button class="submit-tab ${activeTab === 'paste' ? 'active' : ''}" data-tab="paste">Paste text</button>
           <button class="submit-tab ${activeTab === 'file' ? 'active' : ''}" data-tab="file">Upload file</button>
         </div>
 
-        ${activeTab === 'paste' ? pasteTabHTML : fileTabHTML}
+        ${tabContent}
 
         ${parsed ? renderPreview() : ''}
       </div>
@@ -68,7 +95,7 @@ export function renderSubmit(container) {
             <label class="form-label">Title</label>
             <input class="form-input" id="meta-title" type="text"
               placeholder="Give this conversation a name"
-              value="">
+              value="${parsed.title ? parsed.title.replace(/"/g, '&quot;') : ''}">
           </div>
           <div class="form-group">
             <label class="form-label">Your name (optional)</label>
@@ -81,9 +108,10 @@ export function renderSubmit(container) {
               placeholder="consciousness, philosophy, coding">
           </div>
           <div class="form-group">
-            <label class="form-label">Original link (optional)</label>
+            <label class="form-label">Original link</label>
             <input class="form-input" id="meta-url" type="url"
-              placeholder="https://claude.ai/share/...">
+              placeholder="https://claude.ai/share/..."
+              value="${parsed.original_url ? parsed.original_url.replace(/"/g, '&quot;') : ''}">
           </div>
         </div>
 
@@ -135,8 +163,32 @@ export function renderSubmit(container) {
       tab.addEventListener('click', () => {
         activeTab = tab.dataset.tab;
         parsed = null;
+        fetchError = null;
         render();
       });
+    });
+
+    // Fetch link button
+    container.querySelector('#fetch-btn')?.addEventListener('click', async () => {
+      const input = container.querySelector('#link-input');
+      const url = input?.value?.trim();
+      if (!url) return;
+
+      fetching = true;
+      fetchError = null;
+      render();
+
+      try {
+        const result = await fetchShareLink(url);
+        parsed = result;
+        parsed.original_url = url;
+        fetching = false;
+        render();
+      } catch (e) {
+        fetching = false;
+        fetchError = e.message || 'Could not fetch conversation. Try pasting the text directly.';
+        render();
+      }
     });
 
     // Parse button
