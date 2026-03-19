@@ -2,7 +2,7 @@
 
 A gallery of the most interesting, beautiful, and intelligent conversations with AI.
 
-**Live:** https://dialogues-gallery.ideaflow.app | https://jacobcole.ai/chat-gallery/
+**Live:** https://deep-dialogues.ideaflow.app | https://jacobcole.ai/deep-dialogues/
 
 ## Features
 
@@ -28,7 +28,7 @@ npm run dev    # http://localhost:7842
 
 ## Contributing conversations
 
-Visit the [Upload page](https://dialogues-gallery.ideaflow.app/#/submit) to share a conversation. You can:
+Visit the [Upload page](https://deep-dialogues.ideaflow.app/#/submit) to share a conversation. You can:
 1. Paste a Claude or ChatGPT share link
 2. Paste conversation text (flexible format — role labels optional)
 3. Upload a `.jsonl` (Claude Code) or `.json` (ChatGPT export) file
