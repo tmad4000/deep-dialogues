@@ -1,7 +1,10 @@
+import { alexKChenConversations } from './alex-chen.js';
+
 /**
- * Seed conversations — ported from Jacob Cole's chats.html
+ * Seed conversations — ported from Jacob Cole's chats.html + community submissions
  */
 export const seedConversations = [
+  ...alexKChenConversations,
   {
     slug: 'clockwork-and-souls',
     title: 'Clockwork and Souls: On Being a Mechanism That Wonders',
