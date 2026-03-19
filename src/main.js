@@ -9,10 +9,10 @@ function renderNav() {
   const nav = document.getElementById('nav');
   nav.innerHTML = `
     <div class="nav-inner">
-      <a href="#/" class="nav-brand">Dialogues</a>
+      <a href="#/" class="nav-brand">AI Dialogues</a>
       <div class="nav-links">
         <a href="#/" class="nav-link">Gallery</a>
-        <a href="#/submit" class="nav-link">Share</a>
+        <a href="#/submit" class="nav-link">Upload</a>
         <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme"></button>
       </div>
     </div>
@@ -49,7 +49,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 const app = document.getElementById('app');
 
 route('/', (container) => {
-  document.title = 'Dialogues \u2014 A Gallery of AI Conversations';
+  document.title = 'AI Dialogues \u2014 A Gallery of AI Conversations';
   renderGallery(container);
 });
 
@@ -58,7 +58,7 @@ route(/^\/read\/(?<slug>[^/]+)$/, (container, params) => {
 });
 
 route('/submit', (container) => {
-  document.title = 'Share a Conversation \u2014 Dialogues';
+  document.title = 'Upload a Conversation \u2014 AI Dialogues';
   renderSubmit(container);
 });
 

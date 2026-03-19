@@ -7,25 +7,42 @@ export async function renderGallery(container) {
   const conversations = await getConversations();
   const tags = await getTags();
 
+  // Get unique contributors
+  const contributors = [...new Set(conversations.map(c => c.contributor_name).filter(Boolean))].sort();
+
   let activeTag = null;
+  let activeContributor = null;
 
   function render() {
-    const filtered = activeTag
-      ? conversations.filter(c => (c.tags || []).includes(activeTag))
-      : conversations;
+    let filtered = conversations;
+    if (activeTag) {
+      filtered = filtered.filter(c => (c.tags || []).includes(activeTag));
+    }
+    if (activeContributor) {
+      filtered = filtered.filter(c => c.contributor_name === activeContributor);
+    }
 
     container.innerHTML = `
       <div class="gallery fade-in">
         <header class="gallery-header">
-          <h1 class="gallery-title">Dialogues</h1>
+          <h1 class="gallery-title">AI Dialogues</h1>
           <p class="gallery-subtitle">
             A gallery of the most interesting, beautiful, and intelligent conversations with AI
           </p>
         </header>
 
+        ${contributors.length > 1 ? `
+          <div class="gallery-filters" style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: none;">
+            <button class="filter-pill ${!activeContributor ? 'active' : ''}" data-contributor="">Everyone</button>
+            ${contributors.map(name => `
+              <button class="filter-pill ${activeContributor === name ? 'active' : ''}" data-contributor="${name}">${name}</button>
+            `).join('')}
+          </div>
+        ` : ''}
+
         ${tags.length > 0 ? `
           <div class="gallery-filters">
-            <button class="filter-pill ${!activeTag ? 'active' : ''}" data-tag="">All</button>
+            <button class="filter-pill ${!activeTag ? 'active' : ''}" data-tag="">All topics</button>
             ${tags.map(tag => `
               <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
             `).join('')}
@@ -38,18 +55,25 @@ export async function renderGallery(container) {
           </div>
         ` : `
           <div class="empty-state">
-            <h3>No conversations yet</h3>
-            <p>Be the first to <a href="#/submit">share a conversation</a>.</p>
+            <h3>No conversations found</h3>
+            <p><a href="#/submit" style="color: var(--accent-ai)">Upload one</a> or try a different filter.</p>
           </div>
         `}
       </div>
     `;
 
-    // Bind filter clicks
-    container.querySelectorAll('.filter-pill').forEach(pill => {
+    // Bind contributor filter clicks
+    container.querySelectorAll('[data-contributor]').forEach(pill => {
       pill.addEventListener('click', () => {
-        const tag = pill.dataset.tag;
-        activeTag = tag || null;
+        activeContributor = pill.dataset.contributor || null;
+        render();
+      });
+    });
+
+    // Bind tag filter clicks
+    container.querySelectorAll('[data-tag]').forEach(pill => {
+      pill.addEventListener('click', () => {
+        activeTag = pill.dataset.tag || null;
         render();
       });
     });
@@ -98,7 +122,6 @@ function getExcerpt(c) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  // Handle "November 2024" style dates
   if (dateStr.match(/^[A-Z]/)) return dateStr;
   const d = new Date(dateStr);
   if (isNaN(d)) return dateStr;

@@ -34,9 +34,9 @@ export function renderSubmit(container) {
     container.innerHTML = `
       <div class="submit fade-in">
         <header class="submit-header">
-          <h1 class="submit-title">Share a Conversation</h1>
+          <h1 class="submit-title">Upload a Conversation</h1>
           <p class="submit-subtitle">
-            Share an interesting, beautiful, or illuminating AI conversation.
+            Upload an interesting, beautiful, or illuminating AI conversation.
             Paste the text, upload a file, or just drop it in.
           </p>
         </header>
