@@ -467,6 +467,49 @@ main#app {
   color: var(--ink-50);
 }
 
+/* Reader controls */
+.reader-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.reader-toggle-btn {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-50);
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--ink-15);
+  border-radius: 5px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.reader-toggle-btn:hover {
+  color: var(--ink);
+  border-color: var(--ink-30);
+}
+
+.toggle-icon {
+  font-size: 0.85rem;
+}
+
+/* Prompts-only mode */
+.conversation-flow.prompts-only .message-ai {
+  max-height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  transition: all 0.3s var(--ease-out);
+}
+
+.conversation-flow.prompts-only .message-human {
+  margin-bottom: 0.75rem;
+}
+
 /* Conversation Messages */
 .conversation-flow {
   margin-top: 0.5rem;

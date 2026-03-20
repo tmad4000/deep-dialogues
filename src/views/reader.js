@@ -47,9 +47,15 @@ export async function renderReader(container, params) {
         ` : ''}
       </header>
 
+      <div class="reader-controls">
+        <button class="reader-toggle-btn" id="collapse-toggle">
+          <span class="toggle-icon">◧</span> Prompts only
+        </button>
+      </div>
+
       ${c.commentary ? `<div class="reader-commentary">${c.commentary}</div>` : ''}
 
-      <div class="conversation-flow">
+      <div class="conversation-flow" id="conversation-flow">
         ${renderMessages(c.messages || [])}
       </div>
 
@@ -70,6 +76,20 @@ export async function renderReader(container, params) {
   container.querySelectorAll('.message').forEach((msg, i) => {
     msg.style.animationDelay = `${0.05 + i * 0.03}s`;
   });
+
+  // Collapse toggle — show only human prompts
+  let collapsed = false;
+  const collapseBtn = container.querySelector('#collapse-toggle');
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', () => {
+      collapsed = !collapsed;
+      const flow = container.querySelector('#conversation-flow');
+      flow.classList.toggle('prompts-only', collapsed);
+      collapseBtn.innerHTML = collapsed
+        ? '<span class="toggle-icon">◨</span> Full conversation'
+        : '<span class="toggle-icon">◧</span> Prompts only';
+    });
+  }
 
   // Share button
   const shareBtn = container.querySelector('.share-btn');
