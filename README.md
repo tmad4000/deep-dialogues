@@ -34,3 +34,58 @@ Visit the [Upload page](https://deep-dialogues.ideaflow.app/#/submit) to share a
 3. Upload a `.jsonl` (Claude Code) or `.json` (ChatGPT export) file
 
 Submissions go to a review queue before appearing in the gallery.
+
+## API
+
+Deep Dialogues has a REST API for programmatic submission and browsing. LLMs and agents can read `/llms.txt` at the site root for a machine-friendly description of all endpoints.
+
+### Running the API server
+
+```bash
+export SUPABASE_URL=https://your-project.supabase.co
+export SUPABASE_ANON_KEY=your-anon-key
+npm run api    # http://localhost:7845
+```
+
+### Submit a conversation
+
+```bash
+curl -X POST https://deep-dialogues.ideaflow.app/api/conversations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "On the Nature of Consciousness",
+    "messages": [
+      {"role": "human", "content": "What do you think consciousness actually is?"},
+      {"role": "assistant", "content": "That is one of the deepest questions we can ask..."}
+    ],
+    "contributor_name": "Jane Smith",
+    "ai_model": "Claude Opus 4",
+    "tags": ["philosophy", "consciousness"],
+    "highlights": ["That is one of the deepest questions we can ask..."]
+  }'
+```
+
+### List published conversations
+
+```bash
+curl https://deep-dialogues.ideaflow.app/api/conversations
+curl https://deep-dialogues.ideaflow.app/api/conversations?tag=philosophy&limit=5
+```
+
+### Get a single conversation
+
+```bash
+curl https://deep-dialogues.ideaflow.app/api/conversations/on-the-nature-of-consciousness-a1b2
+```
+
+### List contributors
+
+```bash
+curl https://deep-dialogues.ideaflow.app/api/contributors
+```
+
+### LLM discovery
+
+```bash
+curl https://deep-dialogues.ideaflow.app/llms.txt
+```

@@ -1,0 +1,78 @@
+# Deep Dialogues API
+
+Deep Dialogues is a curated gallery of remarkable AI conversations — showcasing the most interesting, beautiful, and intelligent dialogues between humans and AI. You can submit conversations programmatically via the API below.
+
+## Base URL
+
+https://deep-dialogues.ideaflow.app
+
+## Authentication
+
+No authentication required. Submitted conversations go to a review queue (status: "pending") before being published.
+
+## Endpoints
+
+### Submit a Conversation
+
+POST /api/conversations
+Content-Type: application/json
+
+Required fields:
+- title (string): Title of the conversation
+- messages (array): Array of message objects with {role, content}
+  - role: "human" or "assistant" (also accepts "user" as alias for "human")
+  - content: The message text (string)
+
+Optional fields:
+- contributor_name (string): Who is sharing this conversation
+- ai_model (string): Which AI model was used (e.g. "Claude Opus 4", "GPT-4o")
+- tags (array of strings): Topic tags like ["philosophy", "creativity", "code"]
+- description (string): Brief description of what makes this conversation notable
+- highlights (array of strings): Notable excerpts — the best quotes or passages
+- original_url (string): Link to the original conversation (e.g. Claude share link)
+- commentary (string): The submitter's thoughts on why this conversation matters
+
+Example:
+
+```json
+{
+  "title": "On the Nature of Consciousness",
+  "messages": [
+    {"role": "human", "content": "What do you think consciousness actually is?"},
+    {"role": "assistant", "content": "That's one of the deepest questions we can ask..."}
+  ],
+  "contributor_name": "Jane Smith",
+  "ai_model": "Claude Opus 4",
+  "tags": ["philosophy", "consciousness"],
+  "description": "A deep exploration of consciousness and subjective experience",
+  "highlights": ["That's one of the deepest questions we can ask..."],
+  "commentary": "This conversation changed how I think about AI awareness."
+}
+```
+
+Response: 201 Created with the full conversation object including generated slug.
+
+### List Published Conversations
+
+GET /api/conversations
+GET /api/conversations?contributor=Jane&tag=philosophy&limit=10&offset=0
+
+Returns an array of conversation summaries (without full messages).
+
+### Get a Single Conversation
+
+GET /api/conversations/{slug}
+
+Returns the full conversation object including messages.
+
+### List Contributors
+
+GET /api/contributors
+
+Returns an array of {contributor_name, count} sorted by most conversations.
+
+### API Schema
+
+GET /api/docs
+
+Returns the OpenAPI 3.0 schema for all endpoints.

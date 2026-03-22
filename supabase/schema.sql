@@ -11,6 +11,7 @@ create table if not exists conversations (
   tags text[] default '{}',
   turn_count integer,
   original_url text,
+  highlights jsonb default '[]'::jsonb,
   featured boolean default false,
   status text default 'pending' check (status in ('pending', 'published', 'rejected')),
   created_at timestamptz default now(),
