@@ -671,6 +671,141 @@ main#app {
   border-color: var(--accent-success);
 }
 
+/* Contributor links (used across views) */
+.contributor-link {
+  color: var(--accent-ai);
+  transition: color 0.2s;
+}
+
+.contributor-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ========== CONTRIBUTORS VIEW ========== */
+
+.contributors {
+  max-width: var(--gallery-width);
+  margin: 0 auto;
+  padding: 4rem 1.5rem 6rem;
+}
+
+.contributor-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.contributor-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--ink-08);
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: cardEnter 0.5s var(--ease-out) forwards;
+}
+
+.contributor-card:first-child {
+  border-top: 1px solid var(--ink-08);
+}
+
+.contributor-card:hover {
+  padding-left: 0.75rem;
+}
+
+.contributor-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-ai-soft);
+  color: var(--accent-ai);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 500;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.contributor-card:hover .contributor-avatar {
+  background: var(--accent-ai);
+  color: #fff;
+}
+
+.contributor-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contributor-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  transition: color 0.2s;
+}
+
+.contributor-card:hover .contributor-name {
+  color: var(--accent-ai);
+}
+
+.contributor-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-30);
+  margin-top: 0.25rem;
+}
+
+.contributor-date {
+  color: var(--ink-30);
+}
+
+.contributor-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.6rem;
+}
+
+.contributor-recent-title {
+  font-size: 0.82rem;
+  color: var(--ink-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s;
+}
+
+.contributor-recent-title:hover {
+  color: var(--accent-ai);
+}
+
+@media (max-width: 640px) {
+  .contributors {
+    padding: 2.5rem 1rem 4rem;
+  }
+
+  .contributor-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .contributor-name {
+    font-size: 1.15rem;
+  }
+}
+
 /* ========== SUBMIT VIEW ========== */
 
 .submit {

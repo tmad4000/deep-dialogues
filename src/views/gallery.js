@@ -1,7 +1,7 @@
 import { getConversations, getTags } from '../lib/store.js';
 import { navigate } from '../lib/router.js';
 
-export async function renderGallery(container) {
+export async function renderGallery(container, params, query) {
   container.innerHTML = '<div class="gallery fade-in"><div class="empty-state">Loading...</div></div>';
 
   const conversations = await getConversations();
@@ -11,7 +11,7 @@ export async function renderGallery(container) {
   const contributors = [...new Set(conversations.map(c => c.contributor_name).filter(Boolean))].sort();
 
   let activeTag = null;
-  let activeContributor = null;
+  let activeContributor = (query && query.contributor) ? decodeURIComponent(query.contributor) : null;
 
   function render() {
     let filtered = conversations;
@@ -104,9 +104,10 @@ export async function renderGallery(container) {
       });
     });
 
-    // Bind card clicks
+    // Bind card clicks (but not contributor links inside cards)
     container.querySelectorAll('.conversation-card').forEach(card => {
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('[data-contributor-link]')) return;
         navigate(`/read/${card.dataset.slug}`);
       });
     });
@@ -130,7 +131,7 @@ function cardHTML(c) {
       ${excerpt ? `<p class="card-excerpt">${excerpt}</p>` : ''}
       <div class="card-meta">
         ${turnCount > 0 ? `<span class="card-meta-item">${turnCount} messages</span>` : ''}
-        ${c.contributor_name ? `<span class="card-meta-item">by ${c.contributor_name}</span>` : ''}
+        ${c.contributor_name ? `<span class="card-meta-item">by <a href="#/?contributor=${encodeURIComponent(c.contributor_name)}" class="contributor-link" data-contributor-link>${c.contributor_name}</a></span>` : ''}
       </div>
     </article>
   `;

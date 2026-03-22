@@ -19,12 +19,16 @@ export function currentPath() {
 }
 
 function match(path) {
+  // Separate path from query string
+  const [pathname, queryString] = path.split('?');
+  const query = Object.fromEntries(new URLSearchParams(queryString || ''));
+
   for (const r of routes) {
     if (typeof r.pattern === 'string') {
-      if (r.pattern === path) return { handler: r.handler, params: {} };
+      if (r.pattern === pathname) return { handler: r.handler, params: {}, query };
     } else {
-      const m = path.match(r.pattern);
-      if (m) return { handler: r.handler, params: m.groups || {} };
+      const m = pathname.match(r.pattern);
+      if (m) return { handler: r.handler, params: m.groups || {}, query };
     }
   }
   return null;
@@ -42,7 +46,7 @@ export function startRouter(container) {
 
     if (result) {
       window.scrollTo(0, 0);
-      currentCleanup = result.handler(container, result.params) || null;
+      currentCleanup = result.handler(container, result.params, result.query) || null;
     }
 
     // Update active nav link

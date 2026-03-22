@@ -37,7 +37,7 @@ export async function renderReader(container, params) {
           ${c.created_at || c.date ? `<span>${formatDate(c.created_at || c.date)}</span>` : ''}
           ${c.ai_model ? `<span class="divider">/</span><span>${c.ai_model}</span>` : ''}
           ${turnCount > 0 ? `<span class="divider">/</span><span>${turnCount} messages</span>` : ''}
-          ${c.contributor_name ? `<span class="divider">/</span><span>${c.contributor_name}</span>` : ''}
+          ${c.contributor_name ? `<span class="divider">/</span><a href="#/?contributor=${encodeURIComponent(c.contributor_name)}" class="contributor-link">${c.contributor_name}</a>` : ''}
         </div>
         ${c.description ? `<p class="reader-description">${c.description}</p>` : ''}
         ${(c.tags && c.tags.length > 0) ? `
