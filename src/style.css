@@ -33,9 +33,9 @@
   --accent-success: #5A9E6F;
 
   /* Dimensions */
-  --reading-width: 1360px;
-  --gallery-width: 1480px;
-  --nav-height: 112px;
+  --reading-width: 680px;
+  --gallery-width: 740px;
+  --nav-height: 56px;
 
   /* Transitions */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -76,7 +76,6 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  font-size: 200%;
 }
 
 body {
@@ -104,7 +103,7 @@ button { cursor: pointer; font: inherit; border: none; background: none; color: 
   position: fixed;
   top: 0;
   left: 0;
-  height: 6px;
+  height: 3px;
   width: 0%;
   background: var(--accent-ai);
   z-index: 1000;
@@ -269,7 +268,7 @@ main#app {
 .card-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .conversation-card {
@@ -409,8 +408,8 @@ main#app {
 }
 
 .reader-back svg {
-  width: 28px;
-  height: 28px;
+  width: 14px;
+  height: 14px;
 }
 
 .reader-header {
@@ -538,7 +537,7 @@ main#app {
 /* Human Messages */
 .message-human {
   padding-left: 1.25rem;
-  border-left: 4px solid var(--accent-human);
+  border-left: 2px solid var(--accent-human);
 }
 
 .message-human .message-label {
@@ -694,7 +693,7 @@ main#app {
 .contributor-grid {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .contributor-card {
@@ -719,8 +718,8 @@ main#app {
 }
 
 .contributor-avatar {
-  width: 96px;
-  height: 96px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--accent-ai-soft);
   color: var(--accent-ai);
@@ -791,14 +790,14 @@ main#app {
   color: var(--accent-ai);
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 640px) {
   .contributors {
     padding: 2.5rem 1rem 4rem;
   }
 
   .contributor-avatar {
-    width: 80px;
-    height: 80px;
+    width: 40px;
+    height: 40px;
     font-size: 1.2rem;
   }
 
@@ -863,7 +862,7 @@ main#app {
   width: 100%;
   min-height: 200px;
   padding: 1.25rem;
-  border: 3px dashed var(--ink-15);
+  border: 1.5px dashed var(--ink-15);
   border-radius: 8px;
   background: var(--bg-submit);
   font-family: var(--font-mono);
@@ -887,7 +886,7 @@ main#app {
 .file-drop-zone {
   width: 100%;
   min-height: 160px;
-  border: 3px dashed var(--ink-15);
+  border: 1.5px dashed var(--ink-15);
   border-radius: 8px;
   background: var(--bg-submit);
   display: flex;
@@ -1071,7 +1070,7 @@ main#app {
 
 /* ========== RESPONSIVE ========== */
 
-@media (max-width: 1280px) {
+@media (max-width: 640px) {
   .gallery {
     padding: 2.5rem 1rem 4rem;
   }
@@ -1117,7 +1116,7 @@ main#app {
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 400px) {
   .gallery-filters {
     gap: 0.35rem;
   }
