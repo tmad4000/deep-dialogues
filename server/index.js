@@ -64,7 +64,7 @@ function normalizeMessages(messages) {
 // --- llms.txt ---
 
 app.get('/llms.txt', (_req, res) => {
-  const llmsTxt = readFileSync(join(__dirname, '..', 'llms.txt'), 'utf8');
+  const llmsTxt = readFileSync(join(__dirname, '..', 'public', 'llms.txt'), 'utf8');
   res.type('text/plain').send(llmsTxt);
 });
 

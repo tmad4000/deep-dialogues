@@ -16,8 +16,19 @@ A gallery of the most interesting, beautiful, and intelligent conversations with
 
 - **Frontend:** Vite + vanilla JS (no framework)
 - **Backend:** Supabase (Postgres + RLS)
+- **API:** Vercel serverless functions (`/api/*`)
 - **Fonts:** Cormorant Garamond, Work Sans, IBM Plex Mono
-- **Deploy:** Vercel + GitHub Pages
+- **Deploy:** Vercel (primary) + GitHub Pages (mirror)
+
+## Deployment
+
+The app is deployed on **Vercel** at `deep-dialogues.ideaflow.app`.
+
+- **Frontend:** Vite builds to `dist/`, served as static files
+- **API:** Vercel serverless functions in `api/` directory
+- **Static assets:** `public/llms.txt` served at `/llms.txt`
+- **Env vars:** Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in the Vercel dashboard (Project Settings > Environment Variables) for the API functions. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the frontend build.
+- **Local API server:** `server/index.js` (Express) is for local dev only — not deployed
 
 ## Development
 
