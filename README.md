@@ -25,6 +25,9 @@ npm start
 For Vite development, run `npm run api` and `npm run dev`; Vite proxies `/api`.
 Set `API_PORT` / `API_HOST` for another listen address. `VITE_API_BASE_URL` can
 point a separately hosted mirror at the production API.
+For a static mirror under a path prefix, set `VITE_BASE_PATH` at build time
+(GitHub Pages uses `/deep-dialogues/`). App navigation uses that prefix and hash
+routes; copied reader links and summary links use the canonical production site.
 
 ## Data and recovery
 
