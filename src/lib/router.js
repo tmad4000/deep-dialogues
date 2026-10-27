@@ -1,6 +1,6 @@
 /**
- * Minimal hash-based router.
- * Routes: #/ (gallery), #/read/:slug (reader), #/submit
+ * Hash routes take precedence over clean reader paths.
+ * Public reader URL and passage-link usage is documented in README.md.
  */
 
 const routes = [];

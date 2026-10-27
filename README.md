@@ -133,7 +133,8 @@ is the 1200×630 preview image. The summary remains useful without JavaScript.
 The underlying Google model was not identified by the shared source.
 
 Semantic formatting for the basic-needs dialogue is a read-time presentation
-layer. It applies only when each message's normalized wording and role match
+layer. For a matching slug and message count, each message is formatted only
+when its normalized wording, role and ordered citation destinations match
 `content/google-basic-needs.json`; persistent originals and operator changes are
 retained. Tests compare every original word, model label and citation URL with
 the pre-formatting publication fixture. Other conversations use their own HTML.
