@@ -1,0 +1,34 @@
+{
+  "slug": "ai-data-centers",
+  "message": 16,
+  "sourceUrl": "https://gemini.google.com/share/d/1VhnByy3NpH8rMVl3i58s1V02OoW_7K0g?usp=sharing",
+  "tiers": [
+    {
+      "heading": "Tier 1: The Core, Structural Issues (The Real Heavyweights)",
+      "target": "message-16-tier-1-the-core-structural-issues-the-real-heavyweights",
+      "issues": [
+        "Electricity Demand & Utility Rate Hikes (Major Issue)",
+        "Local Governance, NDAs, & Lack of Democracy (Major Issue)",
+        "Regional Water Competition (Major Issue in Arid Regions)"
+      ]
+    },
+    {
+      "heading": "Tier 2: Real Problems, But Readily Solvable (Moderate Issues)",
+      "target": "message-16-tier-2-real-problems-but-readily-solvable-moderate-issues",
+      "issues": [
+        "Water Waste via Evaporative Cooling (Solvable)",
+        "24/7 Power vs. Intermittent Renewables (Solvable/Transition Issue)",
+        "AI Bubble / Economic Risk (Macro Issue, Not Siting Issue)"
+      ]
+    },
+    {
+      "heading": "Tier 3: Minor Quibbles & Misdirected Concerns (Low Impact)",
+      "target": "message-16-tier-3-minor-quibbles-misdirected-concerns-low-impact",
+      "issues": [
+        "Direct Environmental Pollution on Site (Minor Quibble / Misconception)",
+        "Noise Pollution (Minor/Hyper-Local Quibble)",
+        "Land Use & Aesthetic Impact (Minor Quibble)"
+      ]
+    }
+  ]
+}

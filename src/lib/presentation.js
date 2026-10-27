@@ -1,4 +1,5 @@
-import formatted from '../../content/google-basic-needs.json' with { type: 'json' };
+import abundance from '../../content/google-basic-needs.json' with { type: 'json' };
+import dataCenters from '../../content/ai-data-centers.json' with { type: 'json' };
 
 // Compare rendered wording before overlaying this versioned, presentation-only edit.
 // A conversation edited by an operator keeps its own content if the wording differs.
@@ -15,7 +16,8 @@ function destinations(html) {
     .map(match => plainText(match[1] ?? match[2] ?? match[3]));
 }
 export function presentConversation(row) {
-  if (!row || row.slug !== formatted.slug || row.messages?.length !== formatted.messages.length) return row;
+  const formatted = [abundance, dataCenters].find(c => c.slug === row?.slug);
+  if (!formatted || row.messages?.length !== formatted.messages.length) return row;
   return { ...row, messages: row.messages.map((msg, i) => plainText(msg.content) === plainText(formatted.messages[i].content) && msg.role === formatted.messages[i].role && JSON.stringify(destinations(msg.content)) === JSON.stringify(destinations(formatted.messages[i].content))
     ? { ...msg, content: formatted.messages[i].content } : msg) };
 }

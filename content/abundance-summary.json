@@ -1,21 +1,33 @@
 {
   "slug": "basic-needs-work-and-abundance",
-  "path": "/s/blueprint-for-abundance",
+  "path": "/read/basic-needs-work-and-abundance",
   "title": "A blueprint for abundance",
-  "description": "A conversation about meeting everyone’s basic needs: Google AI Mode’s open-source blueprint, followed by Astra’s challenge to make it measurable, reliable and humane.",
-  "intro": "What would it take to guarantee food, water, shelter and care for everyone? Jacob’s questions move from the amount of work required to a more interesting question: how could people actually build that world? Google AI Mode proposes a network of open-source communities. Astra then asks how to turn that ambition into dependable services without treating speculative workforce numbers as facts.",
-  "googleSteps": [
-    {"title":"Open the blueprints", "text":"Share designs for modular homes, agricultural robots and water infrastructure.", "target":"message-12-step-1-the-digital-blueprint-open-sourcing-the-engineers"},
-    {"title":"Build local resilience", "text":"Explore community energy, storage and water systems that reduce dependence on monthly utility costs.", "target":"message-12-step-2-the-hyper-local-energy-decoupling-the-individuals"},
-    {"title":"Create micro-farming guilds", "text":"Connect local production and exchange, using automation and open designs.", "target":"message-12-step-3-micro-farming-guilds-the-neighborhoods"},
-    {"title":"Keep land affordable", "text":"Pool resources through community land trusts rather than treating land only as a speculative asset.", "target":"message-12-step-4-crowdfunded-land-trusts-the-investors"},
-    {"title":"Broaden access to health tools", "text":"The original blueprint proposes local medical AI; Astra adds the need for clinical validation, accountable care and human support.", "target":"message-12-step-5-decentralized-ai-health-frameworks-the-medical-community"}
-  ],
-  "astraTakeaway": "Start with one locality and one service guarantee. Measure the full cost and labor burden, fund maintenance and backup capacity, protect people during the transition, share the gains and replicate only what works. The original workforce totals are speculative, not an established global minimum.",
+  "description": "What would it take to meet everyone’s basic needs? A dialogue about labor, incentives and building an open-source path to abundance.",
+  "intro": "What would it take to secure food, water, shelter and care for everyone? The conversation moves from estimates of necessary work to incentives and a blueprint for building open-source, locally owned infrastructure.",
   "highlights": [
-    {"label":"The organizing question", "message":11, "target":"message-11", "quote":"do you have an easy plan for us to get there that people could follow like you’re pretty smart if people just listened to you do you have a step-by-step plan about what we all could be doing that would be super against our local incentive gradient, but still get us there"},
-    {"label":"Google AI Mode · the blueprint", "message":12, "target":"message-12", "quote":"The goal is to slowly disconnect our basic survival from the traditional market by building Networked Open-Source Communities."},
-    {"label":"Google AI Mode · open knowledge", "message":12, "target":"message-12-step-1-the-digital-blueprint-open-sourcing-the-engineers", "quote":"Create the \"Linux of Survival Infrastructure.\""},
-    {"label":"GPT-6 Astra · making it real", "message":13, "target":"message-13", "quote":"guarantee a concrete improvement, account for its whole burden, distribute its gains, and make the result reproducible."}
-  ]
+    {
+      "label": "The organizing question",
+      "message": 11,
+      "target": "message-11",
+      "quote": "do you have an easy plan for us to get there that people could follow like you’re pretty smart if people just listened to you do you have a step-by-step plan about what we all could be doing that would be super against our local incentive gradient, but still get us there"
+    },
+    {
+      "label": "Google AI Mode · the blueprint",
+      "message": 12,
+      "target": "message-12",
+      "quote": "The goal is to slowly disconnect our basic survival from the traditional market by building Networked Open-Source Communities."
+    },
+    {
+      "label": "Google AI Mode · open knowledge",
+      "message": 12,
+      "target": "message-12-step-1-the-digital-blueprint-open-sourcing-the-engineers",
+      "quote": "Create the \"Linux of Survival Infrastructure.\""
+    }
+  ],
+  "favorite": {
+    "label": "Google AI Mode · response 6",
+    "message": 12,
+    "target": "message-12-how-this-wins-in-the-long-run",
+    "quote": "This is a strategy of evolutionary obsolescence. You don't fight the old system; you just build a parallel one that is cheaper and more efficient to live in."
+  }
 }
