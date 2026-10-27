@@ -33,13 +33,18 @@ function renderNav() {
   btn.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
+    themeOverride = next;
+    try { localStorage.setItem('theme', next); } catch {}
     applyTheme();
   });
 }
 
+let themeOverride;
+function savedTheme() {
+  try { return localStorage.getItem('theme'); } catch { return null; }
+}
 function applyTheme() {
-  const saved = localStorage.getItem('theme');
+  const saved = themeOverride || savedTheme();
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const theme = saved || (prefersDark ? 'dark' : 'light');
   document.documentElement.setAttribute('data-theme', theme);
@@ -50,7 +55,7 @@ function applyTheme() {
 
 // Listen for system theme changes
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  if (!localStorage.getItem('theme')) applyTheme();
+  if (!themeOverride && !savedTheme()) applyTheme();
 });
 
 // ---- Routes ----

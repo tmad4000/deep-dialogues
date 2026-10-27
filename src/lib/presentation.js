@@ -10,9 +10,13 @@ export function plainText(html) {
     .replace(/&(amp|lt|gt|quot|apos|nbsp);/g, (_, n) => ({amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '})[n])
     .replace(/\s+/g, ' ').trim();
 }
+function destinations(html) {
+  return [...String(html).matchAll(/<a\b[^>]*\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)]
+    .map(match => plainText(match[1] ?? match[2] ?? match[3]));
+}
 export function presentConversation(row) {
   if (!row || row.slug !== formatted.slug || row.messages?.length !== formatted.messages.length) return row;
-  return { ...row, messages: row.messages.map((msg, i) => plainText(msg.content) === plainText(formatted.messages[i].content) && msg.role === formatted.messages[i].role
+  return { ...row, messages: row.messages.map((msg, i) => plainText(msg.content) === plainText(formatted.messages[i].content) && msg.role === formatted.messages[i].role && JSON.stringify(destinations(msg.content)) === JSON.stringify(destinations(formatted.messages[i].content))
     ? { ...msg, content: formatted.messages[i].content } : msg) };
 }
 export function anchorSlug(text) {
