@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 const { SourceTextModule, SyntheticModule, createContext } = vm;
 import { presentConversation } from '../src/lib/presentation.js';
 import { openStore } from '../server/store.js';
+import { appRoute } from '../src/lib/paths.js';
 import conversation from '../content/google-basic-needs.json' with { type: 'json' };
 
 async function execute(file, globals, imports) {
@@ -57,7 +58,7 @@ test('blocked storage permits startup, theme toggles, and system theme events', 
   Object.defineProperty(globals, 'localStorage', { get() { throw Error('blocked'); } });
   const noop = () => {};
   await execute('../src/main.js', globals, {
-    './style.css': {}, './lib/router.js': { route: noop, startRouter: () => { started = true; } },
+    './style.css': {}, './lib/paths.js': { appRoute }, './lib/router.js': { route: noop, startRouter: () => { started = true; } },
     './views/gallery.js': { renderGallery: noop }, './views/reader.js': { renderReader: noop },
     './views/submit.js': { renderSubmit: noop }, './views/contributors.js': { renderContributors: noop }, './views/api.js': { renderApi: noop }
   });
@@ -81,7 +82,7 @@ test('reader renders system attribution ahead of model fallbacks', { skip: !Sour
       { role: 'system', model: 'Message model', content: '<p>System instructions</p>' },
       { role: 'assistant', model: 'Message model', content: '<p>Response</p>' }
     ] }) },
-    '../lib/presentation.js': { presentConversation }, '../lib/curation.js': { curationFor: () => null, readerLink: () => '' },
+    '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation }, '../lib/curation.js': { curationFor: () => null, readerLink: () => '', publicOrigin: 'https://deep-dialogues.ideaflow.app' },
     '../lib/reader-tools.js': { attachReaderTools: () => () => {} }
   });
   await reader.renderReader(container, { slug: 'test' });
@@ -92,4 +93,9 @@ test('reader renders system attribution ahead of model fallbacks', { skip: !Sour
 if (!SourceTextModule) test('browser module behavior regressions', () => {
   const result = spawnSync(process.execPath, ['--experimental-vm-modules', '--test', new URL(import.meta.url).pathname], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
+test('app navigation retains the configured mirror mount', () => {
+  assert.equal(new URL(appRoute('/contributors', '/deep-dialogues/'), 'https://tmad4000.github.io/deep-dialogues/').href, 'https://tmad4000.github.io/deep-dialogues/#/contributors');
+  assert.equal(new URL(appRoute('/'), 'https://deep-dialogues.ideaflow.app/read/example').href, 'https://deep-dialogues.ideaflow.app/#/');
 });

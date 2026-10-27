@@ -24,7 +24,7 @@ export function attachReaderTools(container,c) {
   const saved=container.querySelector('#saved-items');
   const say=message=>{status.textContent=message;};
   let storage;try{storage=window.localStorage;}catch{storage=null;}
-  let items=loadReadingState(storage,c.slug),selection=null;
+  let items=loadReadingState(storage,c.slug),selection=null,activeShared=null;
   const sectionNames=new Map();
   flow.querySelectorAll('.message').forEach((message,i)=>{
     message.id=`message-${i+1}`;sectionNames.set(message.id,`Message ${i+1} · ${message.querySelector('.message-label').textContent}`);
@@ -43,6 +43,7 @@ export function attachReaderTools(container,c) {
   function refreshMarks() {
     flow.querySelectorAll('mark[data-highlight]').forEach(n=>n.replaceWith(...n.childNodes));flow.normalize();
     for(const item of items.filter(x=>x.type==='highlight')) {const message=container.querySelector(`#${item.target}`)?.closest('.message');if(message)mark(message.querySelector('.message-body'),item.start,item.quote,item.id);}
+    if(activeShared)mark(activeShared.body,activeShared.start,activeShared.quote,'shared',true);
   }
   function renderSaved() {
     saved.innerHTML=items.length ? items.map(item=>`<li><a href="${e(linkFor(item.target,item.quote,item.start))}">${e(item.label)}</a>${item.quote?`<p>“${e(item.quote)}”</p>`:''}<div class="saved-item-actions"><button type="button" data-copy-saved="${e(item.id)}">Copy link</button><button type="button" data-remove-saved="${e(item.id)}">Remove</button></div></li>`).join('') : '<li>No saved passages yet. Bookmark a message or heading, or select text and choose Highlight selection.</li>';
@@ -89,6 +90,7 @@ export function attachReaderTools(container,c) {
   if(at && /^message-\d+(?:-[a-z0-9-]+)?$/.test(at)) {
     const target=container.querySelector(`#${at}`);
     if(target){const quote=params.get('quote');const body=target.closest('.message').querySelector('.message-body');const raw=params.get('from');const start=quoteLocation(text(body),quote,raw!==null&&/^\d+$/.test(raw)?Number(raw):undefined);const highlighted=start>=0?mark(body,start,quote,'shared',true):null;
+      if(highlighted)activeShared={body,start,quote};
       if(quote&&!highlighted)say('The linked passage could not be matched; showing its original message instead.');
       requestAnimationFrame(()=>{(highlighted||target).scrollIntoView({block:'start'});target.tabIndex=-1;target.focus({preventScroll:true});});
     } else say('That section was not found in this conversation.');

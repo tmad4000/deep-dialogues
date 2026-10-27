@@ -56,7 +56,7 @@ export function startRouter(container) {
 
     // Update active nav link
     document.querySelectorAll('.nav-link').forEach(link => {
-      const href = link.getAttribute('href')?.replace(/^\/#/, '#');
+      const href = link.hash;
       link.classList.toggle('active', href === `#${path}`);
     });
   }
