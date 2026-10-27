@@ -72,7 +72,7 @@ export function createApp(store, root) {
     const html=readFileSync(join(root,'dist','index.html'),'utf8');
     const metadata=shareHead({title:c.title,description:c.description||'An AI conversation on Deep Dialogues.',url:publicOrigin+'/read/'+encodeURIComponent(c.slug),image:publicOrigin+(c.slug==='basic-needs-work-and-abundance'?'/share/abundance.png':'/share/dialogues.png')});
     res.setHeader('Cache-Control','no-cache');
-    res.type('html').send(html.replace(/<meta name="description"[^>]*>/,'').replace(/<title>[\s\S]*?<\/title>/,metadata));
+    res.type('html').send(html.replace(/<meta name="description"[^>]*>/,'').replace(/<title>[\s\S]*?<\/title>/,() => metadata));
   });
   app.use(express.static(join(root, 'dist'), { index: false, maxAge: '1h' }));
   app.get('/{*path}', (_req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(join(root, 'dist', 'index.html')); });
