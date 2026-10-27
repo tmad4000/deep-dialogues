@@ -1,3 +1,4 @@
+import { escapeHTML } from '../lib/html.js';
 import { getConversations, getTags } from '../lib/store.js';
 import { navigate } from '../lib/router.js';
 
@@ -35,7 +36,7 @@ export async function renderGallery(container, params, query) {
           <div class="gallery-filters" style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: none;">
             <button class="filter-pill ${!activeContributor ? 'active' : ''}" data-contributor="">Everyone</button>
             ${contributors.map(name => `
-              <button class="filter-pill ${activeContributor === name ? 'active' : ''}" data-contributor="${name}">${name}</button>
+              <button class="filter-pill ${activeContributor === name ? 'active' : ''}" data-contributor="${escapeHTML(name)}">${escapeHTML(name)}</button>
             `).join('')}
           </div>
         ` : ''}
@@ -48,13 +49,13 @@ export async function renderGallery(container, params, query) {
             <div class="gallery-filters">
               <button class="filter-pill ${!activeTag ? 'active' : ''}" data-tag="">All topics</button>
               ${visibleTags.map(tag => `
-                <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
+                <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${escapeHTML(tag)}</button>
               `).join('')}
               ${hiddenTags.length > 0 ? `
                 <button class="filter-pill more-topics-btn" id="more-topics-btn">+ ${hiddenTags.length} more</button>
                 <div class="more-topics-wrap" id="more-topics" style="display:none; width:100%; margin-top:0.25rem;">
                   ${hiddenTags.map(tag => `
-                    <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button>
+                    <button class="filter-pill ${activeTag === tag ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${escapeHTML(tag)}</button>
                   `).join('')}
                 </div>
               ` : ''}
@@ -121,17 +122,17 @@ function cardHTML(c) {
   const excerpt = getExcerpt(c);
 
   return `
-    <article class="conversation-card" data-slug="${c.slug}">
+    <article class="conversation-card" data-slug="${escapeHTML(c.slug)}">
       <div class="card-top-row">
         <span class="card-date">${formatDate(c.created_at || c.date)}</span>
-        ${c.ai_model ? `<span class="card-model-badge">${c.ai_model}</span>` : ''}
+        ${c.ai_model ? `<span class="card-model-badge">${escapeHTML(c.ai_model)}</span>` : ''}
         ${c.featured ? `<span class="card-featured-badge">Featured</span>` : ''}
       </div>
-      <h2 class="card-title">${c.title}</h2>
-      ${excerpt ? `<p class="card-excerpt">${excerpt}</p>` : ''}
+      <h2 class="card-title">${escapeHTML(c.title)}</h2>
+      ${excerpt ? `<p class="card-excerpt">${escapeHTML(excerpt)}</p>` : ''}
       <div class="card-meta">
         ${turnCount > 0 ? `<span class="card-meta-item">${turnCount} messages</span>` : ''}
-        ${c.contributor_name ? `<span class="card-meta-item">by <a href="#/?contributor=${encodeURIComponent(c.contributor_name)}" class="contributor-link" data-contributor-link>${c.contributor_name}</a></span>` : ''}
+        ${c.contributor_name ? `<span class="card-meta-item">by <a href="#/?contributor=${encodeURIComponent(c.contributor_name)}" class="contributor-link" data-contributor-link>${escapeHTML(c.contributor_name)}</a></span>` : ''}
       </div>
     </article>
   `;

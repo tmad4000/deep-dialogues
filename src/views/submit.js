@@ -1,3 +1,4 @@
+import { escapeHTML, safeHTML } from '../lib/html.js';
 import { parseConversation } from '../lib/parser.js';
 import { submitConversation } from '../lib/store.js';
 import { fetchShareLink } from '../lib/fetcher.js';
@@ -25,7 +26,7 @@ export function renderSubmit(container) {
           placeholder="https://claude.ai/share/... or https://chatgpt.com/share/..."
           style="font-family: var(--font-mono); font-size: 0.85rem;">
       </div>
-      ${fetchError ? `<p style="color: var(--accent-feature); font-size: 0.85rem; margin-bottom: 1rem;">${fetchError}</p>` : ''}
+      ${fetchError ? `<p style="color: var(--accent-feature); font-size: 0.85rem; margin-bottom: 1rem;">${escapeHTML(fetchError)}</p>` : ''}
       <div class="submit-actions">
         <button class="btn-primary" id="fetch-btn" ${fetching ? 'disabled' : ''}>
           ${fetching ? 'Fetching...' : 'Fetch conversation'}
@@ -95,7 +96,7 @@ export function renderSubmit(container) {
             <label class="form-label">Title</label>
             <input class="form-input" id="meta-title" type="text"
               placeholder="Give this conversation a name"
-              value="${parsed.title ? parsed.title.replace(/"/g, '&quot;') : ''}">
+              value="${parsed.title ? escapeHTML(parsed.title) : ''}">
           </div>
           <div class="form-group">
             <label class="form-label">Your name (optional)</label>
@@ -111,7 +112,7 @@ export function renderSubmit(container) {
             <label class="form-label">Original link</label>
             <input class="form-input" id="meta-url" type="url"
               placeholder="https://claude.ai/share/..."
-              value="${parsed.original_url ? parsed.original_url.replace(/"/g, '&quot;') : ''}">
+              value="${parsed.original_url ? escapeHTML(parsed.original_url) : ''}">
           </div>
         </div>
 
@@ -120,8 +121,8 @@ export function renderSubmit(container) {
             const isHuman = msg.role === 'human';
             return `
               <div class="message ${isHuman ? 'message-human' : 'message-ai'}" style="opacity:1">
-                <div class="message-label">${isHuman ? 'Human' : (parsed.ai_model || 'AI')}</div>
-                <div class="message-body">${msg.content}</div>
+                <div class="message-label">${isHuman ? 'Human' : escapeHTML(parsed.ai_model || 'AI')}</div>
+                <div class="message-body">${safeHTML(msg.content)}</div>
               </div>
             `;
           }).join('')}
@@ -264,9 +265,6 @@ export function renderSubmit(container) {
       return;
     }
 
-    submitting = true;
-    render();
-
     const tagsInput = container.querySelector('#meta-tags')?.value || '';
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -280,6 +278,9 @@ export function renderSubmit(container) {
       messages: parsed.messages,
       turn_count: parsed.messages.length,
     };
+
+    submitting = true;
+    render();
 
     try {
       await submitConversation(conversation);

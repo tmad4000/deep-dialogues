@@ -1,0 +1,26 @@
+[Unit]
+Description=Deep Dialogues gallery and API
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/deep-dialogues/current
+Environment=NODE_ENV=production
+Environment=API_HOST=172.18.0.1
+Environment=API_PORT=8746
+Environment=DIALOGUES_DB=/var/lib/deep-dialogues/dialogues.sqlite
+EnvironmentFile=-/etc/deep-dialogues-release
+ExecStart=/usr/bin/node server/index.js
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/deep-dialogues
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

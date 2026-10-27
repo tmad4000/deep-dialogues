@@ -1,3 +1,4 @@
+import { escapeHTML, safeHTML, safeURL } from '../lib/html.js';
 import { getConversation } from '../lib/store.js';
 
 export async function renderReader(container, params) {
@@ -32,17 +33,17 @@ export async function renderReader(container, params) {
       </a>
 
       <header class="reader-header">
-        <h1 class="reader-title">${c.title}</h1>
+        <h1 class="reader-title">${escapeHTML(c.title)}</h1>
         <div class="reader-meta">
           ${c.created_at || c.date ? `<span>${formatDate(c.created_at || c.date)}</span>` : ''}
-          ${c.ai_model ? `<span class="divider">/</span><span>${c.ai_model}</span>` : ''}
+          ${c.ai_model ? `<span class="divider">/</span><span>${escapeHTML(c.ai_model)}</span>` : ''}
           ${turnCount > 0 ? `<span class="divider">/</span><span>${turnCount} messages</span>` : ''}
-          ${c.contributor_name ? `<span class="divider">/</span><a href="#/?contributor=${encodeURIComponent(c.contributor_name)}" class="contributor-link">${c.contributor_name}</a>` : ''}
+          ${c.contributor_name ? `<span class="divider">/</span><a href="#/?contributor=${encodeURIComponent(c.contributor_name)}" class="contributor-link">${escapeHTML(c.contributor_name)}</a>` : ''}
         </div>
-        ${c.description ? `<p class="reader-description">${c.description}</p>` : ''}
+        ${c.description ? `<p class="reader-description">${escapeHTML(c.description)}</p>` : ''}
         ${(c.tags && c.tags.length > 0) ? `
           <div class="reader-tags">
-            ${c.tags.map(t => `<span class="reader-tag">${t}</span>`).join('')}
+            ${c.tags.map(t => `<span class="reader-tag">${escapeHTML(t)}</span>`).join('')}
           </div>
         ` : ''}
       </header>
@@ -53,19 +54,19 @@ export async function renderReader(container, params) {
         </button>
       </div>
 
-      ${c.commentary ? `<div class="reader-commentary">${c.commentary}</div>` : ''}
+      ${c.commentary ? `<div class="reader-commentary">${safeHTML(c.commentary)}</div>` : ''}
 
       <div class="conversation-flow" id="conversation-flow">
-        ${renderMessages(c.messages || [])}
+        ${renderMessages(c.messages || [], c.ai_model)}
       </div>
 
       <footer class="reader-footer">
         ${c.original_url ? `
-          <a href="${c.original_url}" target="_blank" rel="noopener" class="reader-footer-link">
+          <a href="${safeURL(c.original_url)}" target="_blank" rel="noopener" class="reader-footer-link">
             View original conversation
           </a>
         ` : ''}
-        <button class="share-btn" data-slug="${c.slug}">
+        <button class="share-btn" data-slug="${escapeHTML(c.slug)}">
           Copy link
         </button>
       </footer>
@@ -95,7 +96,7 @@ export async function renderReader(container, params) {
   const shareBtn = container.querySelector('.share-btn');
   if (shareBtn) {
     shareBtn.addEventListener('click', () => {
-      const url = `${window.location.origin}${window.location.pathname}#/read/${c.slug}`;
+      const url = `${window.location.origin}${window.location.pathname}#/read/${encodeURIComponent(c.slug)}`;
       navigator.clipboard.writeText(url).then(() => {
         shareBtn.textContent = 'Copied!';
         shareBtn.classList.add('copied');
@@ -129,16 +130,16 @@ export async function renderReader(container, params) {
   };
 }
 
-function renderMessages(messages) {
+function renderMessages(messages, model) {
   return messages.map((msg, i) => {
-    const isHuman = msg.role === 'human';
-    const label = isHuman ? 'Human' : (msg.model || 'Claude');
+    const isHuman = ['human', 'user'].includes(msg.role);
+    const label = isHuman ? 'Human' : (msg.role === 'system' ? 'System' : (msg.model || model || 'AI'));
     const cls = isHuman ? 'message-human' : 'message-ai';
 
     return `
       <div class="message ${cls}">
-        <div class="message-label">${label}</div>
-        <div class="message-body">${msg.content}</div>
+        <div class="message-label">${escapeHTML(label)}</div>
+        <div class="message-body">${safeHTML(msg.content)}</div>
       </div>
     `;
   }).join('');

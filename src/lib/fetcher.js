@@ -194,9 +194,6 @@ function parseGenericShare(html, url) {
   // Try to get the main text content
   const body = doc.body?.textContent || '';
 
-  // Try to parse as conversation text
-  const { parseConversation } = import('../lib/parser.js');
-  // Can't dynamically import in sync context — just extract text and throw
   throw new Error('Auto-fetch is not supported for this URL. Copy the conversation text from the page and paste it in the "Paste text" tab.');
 }
 

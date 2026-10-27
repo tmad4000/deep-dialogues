@@ -1,3 +1,4 @@
+import { escapeHTML } from '../lib/html.js';
 import { getConversations } from '../lib/store.js';
 import { navigate } from '../lib/router.js';
 
@@ -39,17 +40,17 @@ export async function renderContributors(container) {
       ${contributors.length > 0 ? `
         <div class="contributor-grid">
           ${contributors.map((p, i) => `
-            <article class="contributor-card" data-contributor="${p.name}" style="animation-delay: ${Math.min(i * 0.05, 0.3)}s">
-              <div class="contributor-avatar">${p.name.charAt(0).toUpperCase()}</div>
+            <article class="contributor-card" data-contributor="${escapeHTML(p.name)}" style="animation-delay: ${Math.min(i * 0.05, 0.3)}s">
+              <div class="contributor-avatar">${escapeHTML(p.name.charAt(0).toUpperCase())}</div>
               <div class="contributor-info">
-                <h2 class="contributor-name">${p.name}</h2>
+                <h2 class="contributor-name">${escapeHTML(p.name)}</h2>
                 <div class="contributor-stats">
                   <span>${p.conversations.length} ${p.conversations.length === 1 ? 'conversation' : 'conversations'}</span>
                   ${p.latestDate ? `<span class="contributor-date">Latest: ${formatDate(p.latestDate)}</span>` : ''}
                 </div>
                 <div class="contributor-recent">
                   ${p.conversations.slice(0, 3).map(c => `
-                    <span class="contributor-recent-title" data-slug="${c.slug}">${c.title}</span>
+                    <span class="contributor-recent-title" data-slug="${escapeHTML(c.slug)}">${escapeHTML(c.title)}</span>
                   `).join('')}
                 </div>
               </div>
