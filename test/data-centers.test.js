@@ -34,6 +34,9 @@ test('data-center publication preserves ten exchanges and separates review from 
     assert.ok(html.indexOf('What matters most') < html.indexOf('Where Gemini went off track'));
     assert.match(html, /https:\/\/court.globalbr.ai\/case\/ai-data-center-siting/);
     assert.match(html, /Editorial priorities, not measured probabilities/);
+    assert.ok(html.indexOf('Editorial priorities, not measured probabilities') < html.indexOf('<ul class="priority-list">'));
+    assert.match(html, /<\/ul><details class="source-notes"><summary>How to read these priorities<\/summary>/);
+    assert.ok(html.indexOf(dataCenterSummary.method) > html.indexOf('<ul class="priority-list">'));
     assert.doesNotMatch(html, /Google AI Mode’s blueprint|<script/);
     const abundance = await (await fetch(base + '/s/blueprint-for-abundance')).text();
     assert.match(abundance, /Google AI Mode’s blueprint/);
