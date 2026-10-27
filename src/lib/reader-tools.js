@@ -18,6 +18,17 @@ function mark(body,start,quote,id,shared=false) {
   return first;
 }
 
+export function headingIdAllocator(messageId) {
+  const used = new Set();
+  return title => {
+    const base = `${messageId}-${anchorSlug(title)}`;
+    let id = base, suffix = 2;
+    while (used.has(id)) id = `${base}-${suffix++}`;
+    used.add(id);
+    return id;
+  };
+}
+
 export function attachReaderTools(container,c) {
   const flow=container.querySelector('#conversation-flow');
   const status=container.querySelector('#reader-status');
@@ -28,9 +39,9 @@ export function attachReaderTools(container,c) {
   const sectionNames=new Map();
   flow.querySelectorAll('.message').forEach((message,i)=>{
     message.id=`message-${i+1}`;sectionNames.set(message.id,`Message ${i+1} · ${message.querySelector('.message-label').textContent}`);
-    const counts=new Map();
+    const headingId=headingIdAllocator(message.id);
     message.querySelectorAll('.message-body h1,.message-body h2,.message-body h3,.message-body h4,.message-body h5,.message-body h6').forEach(heading=>{
-      const base=`${message.id}-${anchorSlug(heading.textContent)}`;const n=(counts.get(base)||0)+1;counts.set(base,n);heading.id=n===1?base:`${base}-${n}`;heading.tabIndex=-1;sectionNames.set(heading.id,heading.textContent);
+      heading.id=headingId(heading.textContent);heading.tabIndex=-1;sectionNames.set(heading.id,heading.textContent);
       const actions=document.createElement('div');actions.className='section-tools';actions.innerHTML=`<button type="button" data-copy-target="${heading.id}" aria-label="Copy link to ${e(heading.textContent)}">Link</button><button type="button" data-bookmark="${heading.id}" aria-pressed="false" aria-label="Bookmark ${e(heading.textContent)}">Bookmark</button>`;heading.after(actions);
     });
     message.querySelectorAll('table').forEach(table=>{const wrap=document.createElement('div');wrap.className='table-scroll';wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','Response table; scroll horizontally on small screens');table.replaceWith(wrap);wrap.append(table);});
