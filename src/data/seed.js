@@ -1,9 +1,11 @@
+import basicNeedsConversation from '../../content/google-basic-needs.json' with { type: 'json' };
 import { alexKChenConversations } from './alex-chen.js';
 
 /**
  * Seed conversations — ported from Jacob Cole's chats.html + community submissions
  */
 export const seedConversations = [
+  basicNeedsConversation,
   ...alexKChenConversations,
   {
     slug: 'clockwork-and-souls',

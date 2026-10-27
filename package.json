@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "api": "node server/index.js"
+    "api": "node server/index.js",
+    "start": "node server/index.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3",
@@ -16,5 +18,11 @@
   },
   "devDependencies": {
     "vite": "^6.3.0"
+  },
+  "overrides": {
+    "proxy-addr": "2.0.8",
+    "path-to-regexp": "8.4.2",
+    "qs": "6.16.0",
+    "body-parser": "2.3.0"
   }
 }

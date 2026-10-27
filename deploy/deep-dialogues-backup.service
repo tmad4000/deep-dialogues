@@ -1,0 +1,11 @@
+[Unit]
+Description=Consistent Deep Dialogues database backup
+After=deep-dialogues.service
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+ExecStart=/usr/bin/python3 /opt/deep-dialogues/current/deploy/backup.py
+ProtectSystem=strict
+ReadWritePaths=/var/lib/deep-dialogues
+UMask=0077
