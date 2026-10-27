@@ -1,0 +1,247 @@
+{
+  "slug": "ai-data-centers",
+  "path": "/s/ai-data-centers",
+  "title": "AI data centers: what matters most?",
+  "description": "A weighted review of power, bills, water, noise and AI siting, with the original Gemini conversation and a sourced Court argument.",
+  "intro": "Build where the resources and infrastructure fit, make operators bear their costs, and verify the protections. That is a stronger answer than either blanket opposition or calling every remaining concern a quibble.",
+  "attribution": "Jacob Cole × Gemini · with a separately attributed Codex review",
+  "method": "Editorial priorities, not measured probabilities, consensus or additive scores. They describe potential importance before mitigation; severity, geographic reach, confidence and residual harm must be assessed separately. A small affected population does not make an impact small for those people.",
+  "weights": [
+    {
+      "priority": "5 / 5 · major",
+      "issue": "Deliverable power, emissions and expansion timing",
+      "scope": "Regional / global",
+      "condition": "Require a credible connection schedule and hourly supply plan. Cheap annual energy is insufficient.",
+      "refs": [
+        "iea"
+      ]
+    },
+    {
+      "priority": "5 / 5 · major",
+      "issue": "Cost allocation and stranded infrastructure",
+      "scope": "Regional ratepayers",
+      "condition": "Binding tariffs, minimum bills and exit security; account for broader market effects.",
+      "refs": [
+        "puco",
+        "occ",
+        "jlarc"
+      ]
+    },
+    {
+      "priority": "4 / 5 when exposed",
+      "issue": "Water competition",
+      "scope": "Basin and season specific",
+      "condition": "Audit the full cooling system and drought operation. Dry cooling can reduce onsite water with tradeoffs.",
+      "refs": [
+        "doe",
+        "dry"
+      ]
+    },
+    {
+      "priority": "4 / 5 · enabling condition",
+      "issue": "Transparent decisions and enforceable protections",
+      "scope": "Affected communities",
+      "condition": "Disclose terms, measure impacts, allocate benefits fairly and provide recourse.",
+      "refs": [
+        "aclu"
+      ]
+    },
+    {
+      "priority": "3 / 5; can be locally major",
+      "issue": "Noise and local air impacts",
+      "scope": "Nearby residents",
+      "condition": "Measure the actual equipment and operating schedule. Backup diesel and continuous generation differ.",
+      "refs": [
+        "jlarc"
+      ]
+    },
+    {
+      "priority": "2 / 5 ordinarily; site exceptions",
+      "issue": "Land appearance and routine traffic",
+      "scope": "Parcel / neighborhood",
+      "condition": "Usually secondary; habitat loss, displacement or cultural significance can change the decision.",
+      "refs": []
+    }
+  ],
+  "sections": [
+    {
+      "title": "My take",
+      "text": "Jacob’s instinct points toward a useful policy: prefer locations with suitable power and water conditions, and make operators cover the impacts they cause. Gemini was right that financial compensation alone does not create physical capacity. It was too categorical about latency, water-free cooling and legal barriers, then too dismissive of noise and emissions when asked to rank objections.",
+      "refs": [
+        "original"
+      ]
+    },
+    {
+      "title": "Where Gemini went off track",
+      "text": "Inference is not a single latency class: nonurgent batch work and interactive voice have different needs. A closed chip-cooling loop says nothing by itself about whether the final heat rejection evaporates water. A dedicated tariff can be approved through existing procedures. Ordinary backup generators do not run continuously. None of these corrections means every proposed site is suitable.",
+      "refs": [
+        "batch",
+        "latency",
+        "doe",
+        "puco",
+        "jlarc"
+      ]
+    },
+    {
+      "title": "Paying the bills: a strong tool with a defined boundary",
+      "text": "Separate dedicated construction costs, ongoing energy charges, wider market-price effects and the risk of unused infrastructure. Minimum payment commitments and credit support can address financial exposure. Local dividends may share benefits, but a voluntary check is weaker than an enforceable obligation and cannot compensate automatically for every water, noise or reliability impact.",
+      "refs": [
+        "occ",
+        "jlarc"
+      ]
+    },
+    {
+      "title": "Where to build—and whether good sites are enough",
+      "text": "Screen industrial or previously developed sites with deliverable electricity, robust fiber, low water stress, manageable heat rejection, resilience and accountable permitting. Sites near new clean generation may be promising; a state or country name is not proof of spare capacity. Move training and flexible inference where these conditions are strongest, while measuring tighter requirements for interactive services. Training still needs fast links within its compute cluster. Whether those sites meet all needs remains unresolved without a dated workload-and-capacity model.",
+      "refs": [
+        "iea",
+        "batch",
+        "latency",
+        "nccl"
+      ]
+    },
+    {
+      "title": "What the public debate is actually about",
+      "text": "Ratepayer advocates focus on who pays; operators emphasize investment, useful computing and technical improvements; local and civil-liberties groups emphasize consent and remedies. Gallup and Annenberg document substantial local opposition, but their surveys do not show that electricity bills are its sole cause or that this must dominate anyone’s election choices. An engineering remedy needs credible implementation before people can be expected to trust it.",
+      "refs": [
+        "puco",
+        "flex",
+        "dry",
+        "aclu",
+        "gallup",
+        "annenberg"
+      ]
+    },
+    {
+      "title": "A practical approval plan",
+      "text": "First classify the workload and its latency budget. Next compare actual sites and hourly supply plans. Publish regional cost and water studies before approval. Secure cost recovery and exit protection, specify measurable noise, air and water limits, and stage energization against infrastructure readiness. Finally monitor performance and enforce remedies. Reject or defer sites that fail these conditions; reassess after mitigation rather than treating any objection as a permanent veto.",
+      "refs": []
+    },
+    {
+      "title": "What would change this assessment",
+      "text": "A project-specific capacity study, an independently checked hourly emissions comparison, a basin-level drought analysis, enforceable financial guarantees, and measured neighborhood impacts could move individual concerns up or down. The existence of a technology, a corporate pledge, or opposition polling cannot substitute for that evidence.",
+      "refs": []
+    }
+  ],
+  "sources": {
+    "jlarc": {
+      "title": "Virginia: Data Centers",
+      "publisher": "Virginia JLARC",
+      "url": "https://jlarc.virginia.gov/landing-2024-data-centers-in-virginia.asp",
+      "year": 2024
+    },
+    "iea": {
+      "title": "Energy and AI: executive summary",
+      "publisher": "IEA",
+      "url": "https://www.iea.org/reports/energy-and-ai/executive-summary",
+      "year": 2025
+    },
+    "puco": {
+      "title": "PUCO approves AEP Ohio data center tariff",
+      "publisher": "Public Utilities Commission of Ohio",
+      "url": "https://content.govdelivery.com/accounts/OHPUC/bulletins/3e8bb79",
+      "year": 2025
+    },
+    "occ": {
+      "title": "Data Center Costs: 24-0508-EL-ATA",
+      "publisher": "Ohio Consumers’ Counsel",
+      "url": "https://www.occ.ohio.gov/content/data-center-costs-24-0508-el-ata",
+      "year": 2025
+    },
+    "doe": {
+      "title": "Cooling Water Efficiency Opportunities for Federal Data Centers",
+      "publisher": "US Department of Energy",
+      "url": "https://www.energy.gov/cmei/femp/cooling-water-efficiency-opportunities-federal-data-centers"
+    },
+    "batch": {
+      "title": "Gemini Batch API",
+      "publisher": "Google",
+      "url": "https://ai.google.dev/gemini-api/docs/batch-api"
+    },
+    "latency": {
+      "title": "LLM benchmarking metrics",
+      "publisher": "NVIDIA",
+      "url": "https://docs.nvidia.com/nim/benchmarking/llm/1.0.0/metrics"
+    },
+    "flex": {
+      "title": "How we’re making data centers more flexible to benefit power grids",
+      "publisher": "Google",
+      "url": "https://blog.google/innovation-and-ai/infrastructure-and-cloud/global-network/how-were-making-data-centers-more-flexible-to-benefit-power-grids/",
+      "year": 2025
+    },
+    "dry": {
+      "title": "Next-generation datacenters consume zero water for cooling",
+      "publisher": "Microsoft",
+      "url": "https://www.microsoft.com/en-us/microsoft-cloud/blog/2024/12/09/sustainable-by-design-next-generation-datacenters-consume-zero-water-for-cooling/",
+      "year": 2024
+    },
+    "gallup": {
+      "title": "Americans Oppose New Data Centers in Their Area",
+      "publisher": "Gallup",
+      "url": "https://news.gallup.com/poll/709772/americans-oppose-data-centers-area.aspx",
+      "year": 2026
+    },
+    "annenberg": {
+      "title": "Opposition to Local Data Centers Rises Sharply",
+      "publisher": "Annenberg Public Policy Center",
+      "url": "https://www.annenbergpublicpolicycenter.org/opposition-to-local-data-centers-rises-sharply-annenberg-survey-finds/",
+      "year": 2026
+    },
+    "aclu": {
+      "title": "How Data Centers Erode Civil Liberties",
+      "publisher": "ACLU",
+      "url": "https://www.aclu.org/news/privacy-technology/your-questions-answered-how-data-centers-erode-civil-liberties",
+      "year": 2026
+    },
+    "house": {
+      "title": "Ratepayer Protection Act Passes House",
+      "publisher": "House Energy and Commerce Committee",
+      "url": "https://energycommerce.house.gov/posts/ratepayer-protection-act-passes-house-with-strong-bipartisan-support",
+      "year": 2026
+    },
+    "senate": {
+      "title": "Congressional Record: ratepayer protections discussion",
+      "publisher": "Congressional Record",
+      "url": "https://www.govinfo.gov/content/pkg/CREC-2026-09-30/html/CREC-2026-09-30-pt1-PgS5198-3.htm",
+      "year": 2026
+    },
+    "nccl": {
+      "title": "NVIDIA Collective Communications Library",
+      "publisher": "NVIDIA",
+      "url": "https://developer.nvidia.com/nccl"
+    },
+    "original": {
+      "title": "Original Gemini conversation: Environmental Impact of Data Centers",
+      "publisher": "Gemini shared chat",
+      "url": "https://gemini.google.com/share/d/1VhnByy3NpH8rMVl3i58s1V02OoW_7K0g?usp=sharing"
+    },
+    "review": {
+      "title": "Original dialogue and separately attributed Codex review",
+      "publisher": "Deep Dialogues",
+      "url": "https://deep-dialogues.ideaflow.app/read/ai-data-centers",
+      "year": 2026
+    }
+  },
+  "courtUrl": "https://court.globalbr.ai/case/ai-data-center-siting",
+  "originalUrl": "https://gemini.google.com/share/d/1VhnByy3NpH8rMVl3i58s1V02OoW_7K0g?usp=sharing",
+  "highlights": [
+    {
+      "label": "Jacob · the ranking question",
+      "message": 15,
+      "target": "message-15",
+      "quote": "I want you to weight the importance of all the arguments in here: which ones are actually major issues versus which ones are small quibbles."
+    },
+    {
+      "label": "Jacob · siting near power",
+      "message": 13,
+      "target": "message-13",
+      "quote": "also, why not just build them in areas where power is more abundant and renewable, or just abundant?"
+    },
+    {
+      "label": "Codex · independent assessment",
+      "message": 21,
+      "target": "message-21",
+      "quote": "The existence of a technology, a corporate pledge, or opposition polling cannot substitute for that evidence."
+    }
+  ]
+}
