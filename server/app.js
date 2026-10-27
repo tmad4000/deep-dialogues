@@ -1,4 +1,4 @@
-import { renderSummary, shareHead } from './summary.js';
+import { renderSummary, renderDataCenterSummary, shareHead } from './summary.js';
 import { publicOrigin } from '../src/lib/curation.js';
 import { readFileSync } from 'node:fs';
 import express from 'express';
@@ -65,6 +65,11 @@ export function createApp(store, root) {
     if (!store.get('basic-needs-work-and-abundance')) return res.status(404).send('Conversation unavailable');
     res.setHeader('Cache-Control','public, max-age=300');
     res.type('html').send(renderSummary(root));
+  });
+  app.get('/s/ai-data-centers', (_req, res) => {
+    if (!store.get('ai-data-centers')) return res.status(404).send('Conversation unavailable');
+    res.setHeader('Cache-Control','public, max-age=300');
+    res.type('html').send(renderDataCenterSummary(root));
   });
   app.get('/read/:slug', (req, res) => {
     const c=store.get(req.params.slug);

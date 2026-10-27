@@ -70,7 +70,7 @@ test('blocked storage permits startup, theme toggles, and system theme events', 
   assert.equal(attrs.get('data-theme'), 'dark');
 });
 
-test('reader renders system attribution ahead of model fallbacks', { skip: !SourceTextModule }, async () => {
+for (const topic of [null, 'ai-data-centers', 'blueprint-for-abundance']) test(`reader renders correct attribution for ${topic || 'uncurated conversations'}`, { skip: !SourceTextModule }, async () => {
   const button = { addEventListener() {}, removeEventListener() {} };
   const container = { querySelector: () => button };
   const reader = await execute('../src/views/reader.js', {
@@ -82,10 +82,12 @@ test('reader renders system attribution ahead of model fallbacks', { skip: !Sour
       { role: 'system', model: 'Message model', content: '<p>System instructions</p>' },
       { role: 'assistant', model: 'Message model', content: '<p>Response</p>' }
     ] }) },
-    '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation }, '../lib/curation.js': { curationFor: () => null, readerLink: () => '', publicOrigin: 'https://deep-dialogues.ideaflow.app' },
+    '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation }, '../lib/curation.js': { curationFor: () => topic ? { slug: topic, path: '/summary', highlights: [] } : null, readerLink: () => '', publicOrigin: 'https://deep-dialogues.ideaflow.app' },
+    '../lib/data-center-brief.js': { renderDataCenterPriorities: () => '' },
     '../lib/reader-tools.js': { attachReaderTools: () => () => {} }
   });
   await reader.renderReader(container, { slug: 'test' });
+  assert.ok(container.innerHTML.includes(`<h2 class="transcript-title">The original conversation${topic === 'ai-data-centers' ? ' · with Codex’s later review' : topic ? ' · with Astra’s later response' : ''}</h2>`));
   assert.match(container.innerHTML, /aria-label="Message 1, System"/);
   assert.match(container.innerHTML, /aria-label="Message 2, Message model"/);
 });

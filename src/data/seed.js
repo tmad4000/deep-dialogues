@@ -1,3 +1,4 @@
+import dataCenterConversation from '../../content/ai-data-centers.json' with { type: 'json' };
 import basicNeedsConversation from '../../content/google-basic-needs.json' with { type: 'json' };
 import { alexKChenConversations } from './alex-chen.js';
 
@@ -6,6 +7,7 @@ import { alexKChenConversations } from './alex-chen.js';
  */
 export const seedConversations = [
   basicNeedsConversation,
+  dataCenterConversation,
   ...alexKChenConversations,
   {
     slug: 'clockwork-and-souls',
