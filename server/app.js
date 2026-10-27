@@ -1,5 +1,5 @@
-import { renderSummary, renderDataCenterSummary, shareHead } from './summary.js';
-import { publicOrigin } from '../src/lib/curation.js';
+import { renderDataCenterSummary, shareHead } from './summary.js';
+import { publicOrigin, curationFor } from '../src/lib/curation.js';
 import { readFileSync } from 'node:fs';
 import express from 'express';
 import { join } from 'node:path';
@@ -63,8 +63,8 @@ export function createApp(store, root) {
   app.get('/llms.txt', (_req, res) => res.sendFile(join(root, 'public', 'llms.txt')));
   app.get('/s/blueprint-for-abundance', (_req, res) => {
     if (!store.get('basic-needs-work-and-abundance')) return res.status(404).send('Conversation unavailable');
-    res.setHeader('Cache-Control','public, max-age=300');
-    res.type('html').send(renderSummary(root));
+    res.setHeader('Cache-Control','no-cache');
+    res.redirect(308, '/read/basic-needs-work-and-abundance');
   });
   app.get('/s/ai-data-centers', (_req, res) => {
     if (!store.get('ai-data-centers')) return res.status(404).send('Conversation unavailable');
@@ -75,7 +75,7 @@ export function createApp(store, root) {
     const c=store.get(req.params.slug);
     if (!c) return res.status(404).send('Conversation not found');
     const html=readFileSync(join(root,'dist','index.html'),'utf8');
-    const metadata=shareHead({title:c.title,description:c.description||'An AI conversation on Deep Dialogues.',url:publicOrigin+'/read/'+encodeURIComponent(c.slug),image:publicOrigin+(c.slug==='basic-needs-work-and-abundance'?'/share/abundance.png':'/share/dialogues.png')});
+    const metadata=shareHead({title:c.title,description:curationFor(c)?.description||c.description||'An AI conversation on Deep Dialogues.',url:publicOrigin+'/read/'+encodeURIComponent(c.slug),image:publicOrigin+(c.slug==='basic-needs-work-and-abundance'?'/share/abundance.png':'/share/dialogues.png')});
     res.setHeader('Cache-Control','no-cache');
     res.type('html').send(html.replace(/<meta name="description"[^>]*>/,'').replace(/<title>[\s\S]*?<\/title>/,() => metadata));
   });

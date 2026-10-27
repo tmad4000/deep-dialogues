@@ -129,24 +129,28 @@ account. Copy their links to share a passage or open it elsewhere. Clearing site
 data removes local saves. Storage/clipboard failures have visible recovery paths.
 The prompts-only control hides responses without removing their destinations.
 
-`/s/blueprint-for-abundance` is a server-rendered editorial guide with five steps,
-quoted highlights, original-section links and separate Astra attribution. Its
-HTML contains canonical, Open Graph and Twitter metadata; `/share/abundance.png`
-is the 1200×630 preview image. The summary remains useful without JavaScript.
+The abundance reader starts with an integrated description/summary and an exact
+favorite passage from the original Google dialogue, followed by highlights and
+the complete conversation. Astra remains a separately attributed later message.
+`/s/blueprint-for-abundance` now permanently redirects (308) to
+`/read/basic-needs-work-and-abundance`; canonical and Open Graph/Twitter metadata
+identify that reader URL. `/share/abundance.png` remains its 1200×630 preview.
 The underlying Google model was not identified by the shared source.
 
-`/s/ai-data-centers` is a separate server-rendered guide to the data-center
-debate, with sourced editorial priorities and a Court of the Internet backlink.
-The same priorities appear above the transcript in the matching 21-message
-reader. These are Codex's judgments, separate from the ten original Gemini
-exchanges and the appended Codex review. Gemini's model version is unverified,
-and the underlying article and comments were unavailable for independent review.
-This topic does not alter the abundance guide.
+The data-center reader restores Gemini’s original three-tier classification at
+the top, linked to the complete response8/message16. Its headings, nine issue
+labels and explanations were already in the transcript as flat paragraphs;
+semantic headings/lists and the original ranking are now surfaced explicitly.
+The ten-exchange source fixture matches a fresh authorized Chrome capture of
+Gemini’s eighth answer after whitespace normalization. No source words were
+missing or invented. Codex’s later assessment remains message21. The existing
+`/s/ai-data-centers` editorial guide remains separate; it is not substituted for
+Gemini’s classification. Original claims are preserved as attributed claims.
 
-Semantic formatting for the basic-needs dialogue is a read-time presentation
+Semantic formatting for the basic-needs and data-centers dialogues is a read-time presentation
 layer. For a matching slug and message count, each message is formatted only
 when its normalized wording, role and ordered citation destinations match
-`content/google-basic-needs.json`; persistent originals and operator changes are
+the matching versioned conversation in `content/`; persistent originals and operator changes are
 retained. Tests compare every original word, model label and citation URL with
 the pre-formatting publication fixture. Other conversations use their own HTML.
 

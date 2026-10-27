@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { headingIdAllocator } from '../src/lib/reader-tools.js';
-import { abundanceSummary } from '../src/lib/curation.js';
 import conversation from '../content/google-basic-needs.json' with { type: 'json' };
 
 test('heading IDs stay unique across repeated and naturally suffixed headings', () => {
@@ -17,6 +16,14 @@ test('heading IDs stay unique across repeated and naturally suffixed headings', 
   assert.equal(headingIdAllocator('message-2')('Overview'), 'message-2-overview');
 });
 
+const legacySteps = [
+  'message-12-step-1-the-digital-blueprint-open-sourcing-the-engineers',
+  'message-12-step-2-the-hyper-local-energy-decoupling-the-individuals',
+  'message-12-step-3-micro-farming-guilds-the-neighborhoods',
+  'message-12-step-4-crowdfunded-land-trusts-the-investors',
+  'message-12-step-5-decentralized-ai-health-frameworks-the-medical-community'
+].map(target=>({target}));
+
 test('curated blueprint destinations retain their heading IDs', () => {
   const targets = new Set();
   conversation.messages.forEach((message, i) => {
@@ -25,6 +32,6 @@ test('curated blueprint destinations retain their heading IDs', () => {
       targets.add(allocate(heading[2]));
     }
   });
-  assert.equal(abundanceSummary.googleSteps.length, 5);
-  for (const step of abundanceSummary.googleSteps) assert.ok(targets.has(step.target), step.target);
+  assert.equal(legacySteps.length, 5);
+  for (const step of legacySteps) assert.ok(targets.has(step.target), step.target);
 });

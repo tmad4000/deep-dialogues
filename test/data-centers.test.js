@@ -38,9 +38,9 @@ test('data-center publication preserves ten exchanges and separates review from 
     assert.match(html, /<\/ul><details class="source-notes"><summary>How to read these priorities<\/summary>/);
     assert.ok(html.indexOf(dataCenterSummary.method) > html.indexOf('<ul class="priority-list">'));
     assert.doesNotMatch(html, /Google AI Mode’s blueprint|<script/);
-    const abundance = await (await fetch(base + '/s/blueprint-for-abundance')).text();
-    assert.match(abundance, /Google AI Mode’s blueprint/);
-    assert.doesNotMatch(abundance, /What matters most|AI data centers/);
+    const abundance = await fetch(base + '/s/blueprint-for-abundance', {redirect:'manual'});
+    assert.equal(abundance.status,308);
+    assert.equal(abundance.headers.get('location'),'/read/basic-needs-work-and-abundance');
   } finally {
     await new Promise(resolve => server.close(resolve)); store.db.close();
     rmSync(root, { recursive: true });

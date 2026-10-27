@@ -83,7 +83,7 @@ for (const topic of [null, 'ai-data-centers', 'blueprint-for-abundance']) test(`
       { role: 'assistant', model: 'Message model', content: '<p>Response</p>' }
     ] }) },
     '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation }, '../lib/curation.js': { curationFor: () => topic ? { slug: topic, path: '/summary', highlights: [] } : null, readerLink: () => '', publicOrigin: 'https://deep-dialogues.ideaflow.app' },
-    '../lib/data-center-brief.js': { renderDataCenterPriorities: () => '' },
+    '../lib/reader-overview.js': { renderReaderOverview: () => '' },
     '../lib/reader-tools.js': { attachReaderTools: () => () => {} }
   });
   await reader.renderReader(container, { slug: 'test' });

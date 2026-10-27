@@ -1374,3 +1374,18 @@ mark.shared-highlight {background:var(--accent-ai-soft);box-shadow:0 2px 0 var(-
 .priority-sources {font:.75rem/1.6 var(--font-ui);color:var(--ink-70);}
 .priority-sources a {color:var(--accent-ai);text-decoration:underline;text-underline-offset:3px;}
 @media(max-width:600px){.priority-list>li{grid-template-columns:1fr;gap:6px}.priority-list span{display:inline;margin-left:8px}}
+
+.reader-overview { margin: 1.5rem 0 2rem; padding: 1.5rem 0; border-top: 1px solid var(--ink-15); border-bottom: 1px solid var(--ink-15); }
+.reader-overview h2 { font: 600 1rem var(--font-ui); margin: 0 0 .75rem; }
+.favorite-passage { margin: 1.25rem 0 0; padding: 1rem 1.25rem; border-left: 3px solid var(--accent-ai); background: var(--bg-elevated); }
+.favorite-passage figcaption { font: .75rem var(--font-mono); color: var(--ink-70); margin-bottom: .75rem; }
+.favorite-passage blockquote { font: 1.25rem/1.6 var(--font-body); margin: 0 0 .75rem; }
+.favorite-passage blockquote a { color: inherit; text-decoration-color: var(--accent-ai); }
+.original-ranking { margin-top: 1.5rem; }
+.original-ranking h3, .original-ranking h4 { font-family: var(--font-ui); }
+.original-ranking h3 { font-size: 1rem; }
+.original-ranking h4 { font-size: .95rem; line-height: 1.5; margin: 1rem 0 .5rem; }
+.original-ranking li { margin-bottom: .4rem; line-height: 1.6; }
+.reader-header-integrated { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+.reader-overview .reader-description { font: 1rem/1.75 var(--font-ui); color: var(--ink-70); margin: 0; }
+.reader-overview + .highlight-reel { border-top: 0; margin-top: 0; padding-top: 0; }

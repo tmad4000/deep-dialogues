@@ -2,8 +2,8 @@ import { escapeHTML as e, safeHTML, safeURL } from '../lib/html.js';
 import { getConversation } from '../lib/store.js';
 import { presentConversation } from '../lib/presentation.js';
 import { appRoute } from '../lib/paths.js';
-import { curationFor, readerLink, publicOrigin } from '../lib/curation.js';
-import { renderDataCenterPriorities } from '../lib/data-center-brief.js';
+import { curationFor, readerLink } from '../lib/curation.js';
+import { renderReaderOverview } from '../lib/reader-overview.js';
 import { attachReaderTools } from '../lib/reader-tools.js';
 
 export async function renderReader(container,params,query={},context={}) {
@@ -16,9 +16,9 @@ export async function renderReader(container,params,query={},context={}) {
   const curated=curationFor(c);
   container.innerHTML=`<article class="reader">
     <a class="reader-back" href="${appRoute('/')}">← Gallery</a>
-    <header class="reader-header"><h1 class="reader-title">${e(c.title)}</h1><div class="reader-meta"><span>${e(c.ai_model||'AI conversation')}</span><span>${c.messages.length} messages</span><span>${e(c.contributor_name||'')}</span></div><p class="reader-description">${e(c.description||'')}</p>${curated?`<a class="source-link" href="${publicOrigin+curated.path}">Read the short summary ↗</a>`:''}</header>
-    ${curated?.slug === "ai-data-centers" ? renderDataCenterPriorities() : ""}
-    ${curated?`<details class="highlight-reel" open><summary>Highlights <span>A quick way into this conversation</span></summary><p class="editorial-note">Selected original passages. <a href="${publicOrigin+curated.path}">The summary</a> ${curated.slug === "ai-data-centers" ? "separates the original debate from Codex’s later review." : "explains Google AI Mode’s blueprint and Astra’s later response."}</p>${curated.highlights.slice(1).map(h=>`<figure class="highlight-card"><figcaption>${e(h.label)}</figcaption><blockquote><a href="${e(readerLink(c.slug,h.target,h.quote))}">“${e(h.quote)}”</a></blockquote><a class="source-link" href="${e(readerLink(c.slug,h.target,h.quote))}">Go to passage →</a></figure>`).join('')}</details>`:''}
+    <header class="reader-header reader-header-integrated"><h1 class="reader-title">${e(c.title)}</h1><div class="reader-meta"><span>${e(c.ai_model||'AI conversation')}</span><span>${c.messages.length} messages</span><span>${e(c.contributor_name||'')}</span></div></header>
+    ${renderReaderOverview(c,curated)}
+    ${curated?`<details class="highlight-reel" open><summary>Highlights <span>Passages from the original dialogue</span></summary>${curated.highlights.map(h=>`<figure class="highlight-card"><figcaption>${e(h.label)}</figcaption><blockquote><a href="${e(readerLink(c.slug,h.target,h.quote))}">“${e(h.quote)}”</a></blockquote><a class="source-link" href="${e(readerLink(c.slug,h.target,h.quote))}">Go to passage →</a></figure>`).join('')}</details>`:''}
     <div class="reading-toolbar" aria-label="Reading tools"><button type="button" id="highlight-selection">Highlight selection</button><button type="button" id="collapse-toggle" aria-pressed="false">Prompts only</button><button type="button" id="copy-reader-link">Copy conversation link</button></div>
     <p id="reader-status" role="status" aria-live="polite" class="reader-status"></p>
     <details class="saved-passages"><summary>Saved passages <span id="saved-count">0</span></summary><p class="editorial-note">Bookmarks and highlights are saved only in this browser. Copy a passage link to share it or open it on another device.</p><ul id="saved-items"></ul></details>
