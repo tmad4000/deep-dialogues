@@ -15,7 +15,8 @@ export function navigate(path) {
 }
 
 export function currentPath() {
-  return window.location.hash.slice(1) || '/';
+  if (window.location.hash.startsWith('#/')) return window.location.hash.slice(1);
+  return window.location.pathname.startsWith('/read/') ? window.location.pathname + window.location.search : '/';
 }
 
 function match(path) {
@@ -35,7 +36,9 @@ function match(path) {
 }
 
 export function startRouter(container) {
-  function handleRoute() {
+  let generation=0;
+  async function handleRoute() {
+    const thisGeneration=++generation;
     const path = currentPath();
     const result = match(path);
 
@@ -46,17 +49,15 @@ export function startRouter(container) {
 
     if (result) {
       window.scrollTo(0, 0);
-      currentCleanup = result.handler(container, result.params, result.query) || null;
+      const cleanup = await result.handler(container, result.params, result.query, {isCurrent:()=>generation===thisGeneration});
+      if (generation!==thisGeneration) { if(typeof cleanup==='function')cleanup(); return; }
+      currentCleanup = typeof cleanup==='function' ? cleanup : null;
     }
 
     // Update active nav link
     document.querySelectorAll('.nav-link').forEach(link => {
-      const href = link.getAttribute('href');
-      if (href === `#${path}` || (path.startsWith('/read/') && href === '#/')) {
-        link.classList.toggle('active', href === `#${path}`);
-      } else {
-        link.classList.toggle('active', href === `#${path}`);
-      }
+      const href = link.getAttribute('href')?.replace(/^\/#/, '#');
+      link.classList.toggle('active', href === `#${path}`);
     });
   }
 
