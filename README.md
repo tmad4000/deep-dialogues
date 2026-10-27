@@ -25,6 +25,9 @@ npm start
 For Vite development, run `npm run api` and `npm run dev`; Vite proxies `/api`.
 Set `API_PORT` / `API_HOST` for another listen address. `VITE_API_BASE_URL` can
 point a separately hosted mirror at the production API.
+For a static mirror under a path prefix, set `VITE_BASE_PATH` at build time
+(GitHub Pages uses `/deep-dialogues/`). App navigation uses that prefix and hash
+routes; copied reader links and summary links use the canonical production site.
 
 ## Data and recovery
 
@@ -112,3 +115,35 @@ existing HTTP dependencies are pinned in `overrides`; no dependency younger
 than one month was introduced during the recovery. Safe HTML rendering and a
 content security policy restrict imported markup. The old Vercel/Supabase
 function sources are legacy, not the production API.
+
+## Reading, highlights and sharing
+
+The public reader accepts `/read/:slug` and the existing `/#/read/:slug` links.
+Every message has a stable `message-N` destination; headings add a normalized
+heading suffix. Link buttons copy public URLs with `?at=...`. Selected passages
+also include the exact `quote` and its `from` character offset; readers verify
+that text before highlighting it, so stale links do not mark an unrelated passage.
+
+Bookmarks and personal highlights are saved **in that browser only**, without an
+account. Copy their links to share a passage or open it elsewhere. Clearing site
+data removes local saves. Storage/clipboard failures have visible recovery paths.
+The prompts-only control hides responses without removing their destinations.
+
+`/s/blueprint-for-abundance` is a server-rendered editorial guide with five steps,
+quoted highlights, original-section links and separate Astra attribution. Its
+HTML contains canonical, Open Graph and Twitter metadata; `/share/abundance.png`
+is the 1200×630 preview image. The summary remains useful without JavaScript.
+The underlying Google model was not identified by the shared source.
+
+Semantic formatting for the basic-needs dialogue is a read-time presentation
+layer. For a matching slug and message count, each message is formatted only
+when its normalized wording, role and ordered citation destinations match
+`content/google-basic-needs.json`; persistent originals and operator changes are
+retained. Tests compare every original word, model label and citation URL with
+the pre-formatting publication fixture. Other conversations use their own HTML.
+
+Complete HTML artifacts are future work, tracked as `deep-dialogues-861`; this
+release does not introduce executable HTML uploads or change the content policy.
+Roll back code by restoring the previous `current` symlink and its
+`RELEASE_COMMIT`, then restart the dedicated service. No database migration or
+restore is needed for these reader changes; preserve new submissions.

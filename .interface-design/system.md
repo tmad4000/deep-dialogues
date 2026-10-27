@@ -1,0 +1,7 @@
+# Deep Dialogues reading extensions
+
+Extend the existing Cormorant Garamond / Work Sans / IBM Plex Mono system and its ink, paper and violet tokens. Retain original branding; no global restyle. Reading is the focal task; compact controls use Work Sans, metadata IBM Plex Mono, original response prose Cormorant at1.22rem/1.75. Headings use Work Sans600, with generous separation between ideas and denser spacing within lists.
+
+Domain: original turns, marginal notes, citations, passages, saved reading, later contributions. Color world: existing paper, ink, faded ink, violet annotation and ochre human prompt. Signature: every curated excerpt leads to its exact original passage, while Astra remains a later named contribution. Avoid a dashboard sidebar, decorative hero cards, or mixing commentary into the original transcript.
+
+Intent/hierarchy: Jacob reads or shares a long dialogue; title and short optional highlight reel lead, then original transcript. Summary is a separate public reading guide. Personal saved passages are explicitly browser-local. Depth is borders and subtle token surfaces; 4px spacing grid, 8–12px controls,24px sections. Touch controls44px on mobile; native buttons/details/dialog and visible focus. Source/section actions repeat consistently. Saved marks use existing human accent; externally linked quotes use the AI accent. Respect reduced motion. Tables scroll within their own labeled region.

@@ -1,3 +1,6 @@
+import { renderSummary, shareHead } from './summary.js';
+import { publicOrigin } from '../src/lib/curation.js';
+import { readFileSync } from 'node:fs';
 import express from 'express';
 import { join } from 'node:path';
 import { validateSubmission, submissionRow } from './store.js';
@@ -58,6 +61,19 @@ export function createApp(store, root) {
   app.get('/api/docs', docs);
   app.use('/api', (_req, res) => res.status(404).json({ error: 'API route not found' }));
   app.get('/llms.txt', (_req, res) => res.sendFile(join(root, 'public', 'llms.txt')));
+  app.get('/s/blueprint-for-abundance', (_req, res) => {
+    if (!store.get('basic-needs-work-and-abundance')) return res.status(404).send('Conversation unavailable');
+    res.setHeader('Cache-Control','public, max-age=300');
+    res.type('html').send(renderSummary(root));
+  });
+  app.get('/read/:slug', (req, res) => {
+    const c=store.get(req.params.slug);
+    if (!c) return res.status(404).send('Conversation not found');
+    const html=readFileSync(join(root,'dist','index.html'),'utf8');
+    const metadata=shareHead({title:c.title,description:c.description||'An AI conversation on Deep Dialogues.',url:publicOrigin+'/read/'+encodeURIComponent(c.slug),image:publicOrigin+(c.slug==='basic-needs-work-and-abundance'?'/share/abundance.png':'/share/dialogues.png')});
+    res.setHeader('Cache-Control','no-cache');
+    res.type('html').send(html.replace(/<meta name="description"[^>]*>/,'').replace(/<title>[\s\S]*?<\/title>/,() => metadata));
+  });
   app.use(express.static(join(root, 'dist'), { index: false, maxAge: '1h' }));
   app.get('/{*path}', (_req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(join(root, 'dist', 'index.html')); });
   app.use((error, _req, res, _next) => {

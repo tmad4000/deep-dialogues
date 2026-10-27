@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { presentConversation } from '../src/lib/presentation.js';
 import { seedConversations } from '../src/data/seed.js';
 
 export function openStore(filename) {
@@ -26,6 +27,10 @@ export function openStore(filename) {
     for (const row of seedConversations) if (!exists.get(row.slug)) save(row, 'published');
     db.exec('COMMIT');
   } catch (error) { db.exec('ROLLBACK'); db.close(); throw error; }
+  const readRaw = slug => {
+    const r = db.prepare('SELECT document FROM conversations WHERE slug = ?').get(slug);
+    return r ? JSON.parse(r.document) : null;
+  };
   return {
     db, save,
     list({ contributor, tag, limit = 20, offset = 0 } = {}) {
@@ -35,12 +40,11 @@ export function openStore(filename) {
       return rows.slice(offset, offset + limit);
     },
     get(slug, includePending = false) {
-      const r = db.prepare('SELECT document FROM conversations WHERE slug = ?').get(slug);
-      const row = r ? JSON.parse(r.document) : null;
-      return row && (includePending || row.status === 'published') ? row : null;
+      const row = readRaw(slug);
+      return row && (includePending || row.status === 'published') ? presentConversation(row) : null;
     },
     publish(slug) {
-      const row = this.get(slug, true);
+      const row = readRaw(slug);
       if (!row) throw new Error('Conversation not found');
       row.status = 'published'; row.published_at = new Date().toISOString();
       db.prepare('UPDATE conversations SET status = ?, document = ? WHERE slug = ?').run(row.status, JSON.stringify(row), slug);
