@@ -135,6 +135,14 @@ HTML contains canonical, Open Graph and Twitter metadata; `/share/abundance.png`
 is the 1200×630 preview image. The summary remains useful without JavaScript.
 The underlying Google model was not identified by the shared source.
 
+`/s/ai-data-centers` is a separate server-rendered guide to the data-center
+debate, with sourced editorial priorities and a Court of the Internet backlink.
+The same priorities appear above the transcript in the matching 21-message
+reader. These are Codex's judgments, separate from the ten original Gemini
+exchanges and the appended Codex review. Gemini's model version is unverified,
+and the underlying article and comments were unavailable for independent review.
+This topic does not alter the abundance guide.
+
 Semantic formatting for the basic-needs dialogue is a read-time presentation
 layer. For a matching slug and message count, each message is formatted only
 when its normalized wording, role and ordered citation destinations match
