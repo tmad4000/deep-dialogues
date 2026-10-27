@@ -15,10 +15,20 @@ function destinations(html) {
   return [...String(html).matchAll(/<a\b[^>]*\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)]
     .map(match => plainText(match[1] ?? match[2] ?? match[3]));
 }
+function formattedSource(row) {
+  return [abundance, dataCenters].find(c => c.slug === row?.slug && row.messages?.length === c.messages.length);
+}
+function matchesMessage(msg, source) {
+  return !!msg && !!source && plainText(msg.content) === plainText(source.content) && msg.role === source.role && JSON.stringify(destinations(msg.content)) === JSON.stringify(destinations(source.content));
+}
+export function matchesSourceMessage(row, message) {
+  const formatted = formattedSource(row);
+  return !!formatted && matchesMessage(row.messages[message - 1], formatted.messages[message - 1]);
+}
 export function presentConversation(row) {
-  const formatted = [abundance, dataCenters].find(c => c.slug === row?.slug);
-  if (!formatted || row.messages?.length !== formatted.messages.length) return row;
-  return { ...row, messages: row.messages.map((msg, i) => plainText(msg.content) === plainText(formatted.messages[i].content) && msg.role === formatted.messages[i].role && JSON.stringify(destinations(msg.content)) === JSON.stringify(destinations(formatted.messages[i].content))
+  const formatted = formattedSource(row);
+  if (!formatted) return row;
+  return { ...row, messages: row.messages.map((msg, i) => matchesMessage(msg, formatted.messages[i])
     ? { ...msg, content: formatted.messages[i].content } : msg) };
 }
 export function anchorSlug(text) {

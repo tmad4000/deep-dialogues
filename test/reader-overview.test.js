@@ -38,3 +38,32 @@ test('data-center original ranking retains all three source tiers and nine exact
  const edited=structuredClone(flat);edited.messages[15].content='<p>Operator correction</p>';
  assert.equal(presentConversation(edited).messages[15].content,edited.messages[15].content);
 });
+
+for (const [name, conversation, curated, index, marker, target] of [
+ ['ranking', centers, dataCenterSummary, 15, 'Gemini’s original ranking', ranking.tiers[0].target],
+ ['favorite', abundance, abundanceSummary, 11, 'Favorite passage', abundanceSummary.favorite.target],
+]) {
+ test(`${name} only quotes a matching source answer`, () => {
+  for (const change of [
+   message => { message.content = '<p>Operator correction</p>'; },
+   message => { message.role = 'user'; },
+   message => { message.content += '<a href="https://example.com/corrected-source">Source</a>'; },
+  ]) {
+   const edited = structuredClone(conversation);
+   change(edited.messages[index]);
+   const presented = presentConversation(edited);
+   const html = renderReaderOverview(presented, curated);
+   assert.ok(!html.includes(marker));
+   assert.ok(!html.includes(target));
+   assert.deepEqual(presented.messages[index], edited.messages[index]);
+   assert.deepEqual(presented.messages.at(-1), conversation.messages.at(-1));
+  }
+  const flat = structuredClone(conversation);
+  flat.messages[index].content = flat.messages[index].content.replace(/h[1-6]/g, 'p');
+  for (const row of [conversation, flat, presentConversation(flat)]) {
+   const html = renderReaderOverview(row, curated);
+   assert.ok(html.includes(marker));
+   assert.ok(html.includes(target));
+  }
+ });
+}
