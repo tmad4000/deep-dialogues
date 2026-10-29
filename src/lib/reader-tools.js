@@ -100,7 +100,11 @@ export function attachReaderTools(container,c) {
   const at=params.get('at');
   if(at && /^message-\d+(?:-[a-z0-9-]+)?$/.test(at)) {
     const target=container.querySelector(`#${at}`);
-    if(target){const quote=params.get('quote');const body=target.closest('.message').querySelector('.message-body');const raw=params.get('from');const start=quoteLocation(text(body),quote,raw!==null&&/^\d+$/.test(raw)?Number(raw):undefined);const highlighted=start>=0?mark(body,start,quote,'shared',true):null;
+    if(target){
+      // Deep links must reveal their target even when the whole transcript starts collapsed.
+      let disclosure=target.closest('details');
+      while(disclosure){disclosure.open=true;disclosure=disclosure.parentElement?.closest('details');}
+      const quote=params.get('quote');const body=target.closest('.message').querySelector('.message-body');const raw=params.get('from');const start=quoteLocation(text(body),quote,raw!==null&&/^\d+$/.test(raw)?Number(raw):undefined);const highlighted=start>=0?mark(body,start,quote,'shared',true):null;
       if(highlighted)activeShared={body,start,quote};
       if(quote&&!highlighted)say('The linked passage could not be matched; showing its original message instead.');
       requestAnimationFrame(()=>{(highlighted||target).scrollIntoView({block:'start'});target.tabIndex=-1;target.focus({preventScroll:true});});
