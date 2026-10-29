@@ -27,7 +27,7 @@ export function renderPinnedExchange(conversation, pin) {
       <div class="message-body pinned-question">${safeHTML(pin.questionMessage.content)}</div>
       <a class="source-link" href="${e(readerLink(conversation.slug,`message-${pin.question}`))}">Read the question in context →</a>
     </details>
-    <details class="pinned-turn" open><summary>${e(pin.responseMessage.model || conversation.ai_model || 'AI')}’s response <span>Message ${pin.response}</span></summary>
+    <details class="pinned-turn pinned-response" open><summary>${e(pin.responseMessage.model || conversation.ai_model || 'AI')}’s response <span>Message ${pin.response}</span></summary>
       <div class="message-body">${safeHTML(pin.responseMessage.content)}</div>
       <a class="source-link" href="${e(readerLink(conversation.slug,`message-${pin.response}`))}">Read the response in context →</a>
     </details>

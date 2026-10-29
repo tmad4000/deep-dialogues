@@ -23,7 +23,10 @@ function matchesMessage(msg, source) {
 }
 export function matchesSourceMessage(row, message) {
   const formatted = formattedSource(row);
-  return !!formatted && matchesMessage(row.messages[message - 1], formatted.messages[message - 1]);
+  if (!formatted) return false;
+  const actual = row.messages[message - 1], source = formatted.messages[message - 1];
+  return matchesMessage(actual, source) && (['human', 'user', 'system'].includes(source.role) ||
+    (actual.model || row.ai_model || 'AI') === (source.model || formatted.ai_model || 'AI'));
 }
 export function presentConversation(row) {
   const formatted = formattedSource(row);

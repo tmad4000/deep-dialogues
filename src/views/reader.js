@@ -34,7 +34,7 @@ export async function renderReader(container,params,query={},context={}) {
   </article>`;
   const cleanupTools=attachReaderTools(container,c);
   const collapse=container.querySelector('#collapse-toggle');
-  const toggle=()=>{const active=collapse.getAttribute('aria-pressed')!=='true';collapse.setAttribute('aria-pressed',String(active));collapse.textContent=active?'Full conversation':'Prompts only';container.querySelectorAll('#conversation-flow .message-ai').forEach(el=>el.hidden=active);};
+  const toggle=()=>{const active=collapse.getAttribute('aria-pressed')!=='true';collapse.setAttribute('aria-pressed',String(active));collapse.textContent=active?'Full conversation':'Prompts only';container.querySelectorAll('#conversation-flow .message-ai, .pinned-response').forEach(el=>el.hidden=active);};
   collapse.addEventListener('click',toggle);
   const bar=document.getElementById('progress-bar');bar?.classList.add('visible');
   const progress=()=>{const max=document.documentElement.scrollHeight-innerHeight;if(bar)bar.style.width=`${max>0?scrollY/max*100:0}%`;};

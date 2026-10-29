@@ -22,3 +22,11 @@ test('an edited original question or answer suppresses stale editorial pinning',
  assert.equal(pinnedExchangeFor({slug:'another-topic',messages:abundance.messages},abundanceSummary),null);
  assert.equal(pinnedExchangeFor(abundance,null),null);
 });
+
+test('a response attributed to a different model is not pinned as original',()=>{
+ const edited=structuredClone(abundance);
+ edited.messages[11].model='GPT-6 Astra';
+ assert.equal(pinnedExchangeFor(edited,abundanceSummary),null);
+ delete edited.messages[11].model;
+ assert.equal(pinnedExchangeFor(edited,abundanceSummary),null);
+});
