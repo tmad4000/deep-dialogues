@@ -129,9 +129,14 @@ account. Copy their links to share a passage or open it elsewhere. Clearing site
 data removes local saves. Storage/clipboard failures have visible recovery paths.
 The prompts-only control hides responses without removing their destinations.
 
-The abundance reader starts with an integrated description/summary and an exact
-favorite passage from the original Google dialogue, followed by highlights and
-the complete conversation. Astra remains a separately attributed later message.
+When the original abundance exchange still matches its source, the reader pins
+Jacob’s planning question and Google AI Mode’s response at the top, each with
+its own disclosure. A separate “Read the whole conversation” disclosure
+contains the integrated overview, highlights, reading tools and transcript,
+including Astra’s separately attributed later message. Links to messages, headings
+and passages open the full conversation as needed. The pin is omitted if either
+turn’s wording, role or citation destinations, or the response attribution,
+differs from the source.
 `/s/blueprint-for-abundance` now permanently redirects (308) to
 `/read/basic-needs-work-and-abundance`; canonical and Open Graph/Twitter metadata
 identify that reader URL. `/share/abundance.png` remains its 1200×630 preview.

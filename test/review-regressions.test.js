@@ -8,6 +8,8 @@ import { presentConversation } from '../src/lib/presentation.js';
 import { openStore } from '../server/store.js';
 import { appRoute } from '../src/lib/paths.js';
 import conversation from '../content/google-basic-needs.json' with { type: 'json' };
+import { pinnedExchangeFor } from '../src/lib/reader-overview.js';
+import { abundanceSummary, readerLink } from '../src/lib/curation.js';
 
 async function execute(file, globals, imports) {
   const context = createContext(globals);
@@ -83,13 +85,42 @@ for (const topic of [null, 'ai-data-centers', 'blueprint-for-abundance']) test(`
       { role: 'assistant', model: 'Message model', content: '<p>Response</p>' }
     ] }) },
     '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation }, '../lib/curation.js': { curationFor: () => topic ? { slug: topic, path: '/summary', highlights: [] } : null, readerLink: () => '', publicOrigin: 'https://deep-dialogues.ideaflow.app' },
-    '../lib/reader-overview.js': { renderReaderOverview: () => '' },
+    '../lib/reader-overview.js': { renderReaderOverview: () => '', pinnedExchangeFor: () => null, renderPinnedExchange: () => '' },
     '../lib/reader-tools.js': { attachReaderTools: () => () => {} }
   });
   await reader.renderReader(container, { slug: 'test' });
   assert.ok(container.innerHTML.includes(`<h2 class="transcript-title">The original conversation${topic === 'ai-data-centers' ? ' · with Codex’s later review' : topic ? ' · with Astra’s later response' : ''}</h2>`));
   assert.match(container.innerHTML, /aria-label="Message 1, System"/);
   assert.match(container.innerHTML, /aria-label="Message 2, Message model"/);
+});
+
+test('prompts-only hides the pinned answer and restores its independent expansion state', { skip: !SourceTextModule }, async () => {
+  let click;
+  const attrs = new Map([['aria-pressed', 'false']]);
+  const button = { getAttribute: k => attrs.get(k), setAttribute: (k,v) => attrs.set(k,v), addEventListener: (_, fn) => { click = fn; } };
+  const answer = { hidden: false, open: true }, transcriptAnswer = { hidden: false };
+  const container = { querySelector: () => button, querySelectorAll: selector => selector.split(',').flatMap(part => {
+    switch (part.trim()) { case '.pinned-response': return [answer]; case '#conversation-flow .message-ai': return [transcriptAnswer]; default: return []; }
+  }) };
+  const overview = await execute('../src/lib/reader-overview.js', {}, {
+    './html.js': { escapeHTML: v => String(v), safeHTML: v => v }, './curation.js': { readerLink },
+    './presentation.js': { matchesSourceMessage: () => true }, '../../content/data-centers-original-ranking.json': { default: {} }
+  });
+  const reader = await execute('../src/views/reader.js', {
+    document: { getElementById: () => null, documentElement: { scrollHeight: 100 } }, innerHeight: 100, addEventListener() {}, removeEventListener() {}
+  }, {
+    '../lib/html.js': { escapeHTML: v => String(v), safeHTML: v => v, safeURL: v => v },
+    '../lib/store.js': { getConversation: async () => conversation }, '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation },
+    '../lib/curation.js': { curationFor: () => abundanceSummary, readerLink },
+    '../lib/reader-overview.js': { renderReaderOverview: () => '', pinnedExchangeFor, renderPinnedExchange: overview.renderPinnedExchange },
+    '../lib/reader-tools.js': { attachReaderTools: () => () => {} }
+  });
+  await reader.renderReader(container, { slug: conversation.slug });
+  assert.match(container.innerHTML, /<details class="pinned-turn pinned-response" open>/);
+  click();
+  assert.equal(answer.hidden, true); assert.equal(transcriptAnswer.hidden, true); assert.equal(answer.open, true);
+  click();
+  assert.equal(answer.hidden, false); assert.equal(transcriptAnswer.hidden, false); assert.equal(answer.open, true);
 });
 
 if (!SourceTextModule) test('browser module behavior regressions', () => {

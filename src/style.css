@@ -1389,3 +1389,14 @@ mark.shared-highlight {background:var(--accent-ai-soft);box-shadow:0 2px 0 var(-
 .reader-header-integrated { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
 .reader-overview .reader-description { font: 1rem/1.75 var(--font-ui); color: var(--ink-70); margin: 0; }
 .reader-overview + .highlight-reel { border-top: 0; margin-top: 0; padding-top: 0; }
+
+/* Original pinned exchange: independent disclosures, with the complete transcript below. */
+.pinned-exchange { margin: 24px 0 32px; }
+.pinned-exchange > h2 { margin: 8px 0 24px; }
+.pinned-turn, .full-conversation { border-top: 1px solid var(--ink-15); padding: 16px 0; }
+.pinned-turn > summary, .full-conversation > summary { cursor: pointer; font-family: var(--font-ui); font-weight: 600; min-height: 44px; padding: 8px 0; }
+.pinned-turn > summary span, .full-conversation > summary span { display: block; font-size: .8rem; font-weight: 400; color: var(--ink-70); margin: 4px 0 0 16px; }
+.pinned-turn > summary:focus-visible, .full-conversation > summary:focus-visible { outline: 2px solid var(--accent-ai); outline-offset: 4px; }
+.pinned-turn .message-body { margin: 16px 0; }
+.pinned-turn .pinned-question { font-family: var(--font-ui); font-size: 1rem; }
+.full-conversation[open] > summary { margin-bottom: 24px; }
