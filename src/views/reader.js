@@ -8,10 +8,11 @@ import { attachReaderTools } from '../lib/reader-tools.js';
 
 export async function renderReader(container,params,query={},context={}) {
   container.innerHTML='<div class="reader"><p>Loading conversation…</p></div>';
+  document.title='Deep Dialogues';
   const found=await getConversation(decodeURIComponent(params.slug));
   if(context.isCurrent && !context.isCurrent())return;
   const c=presentConversation(found);
-  if(!c){container.innerHTML=`<div class="reader"><a href="${appRoute('/')}">Back to gallery</a><h1>Conversation not found</h1></div>`;return;}
+  if(!c){document.title='Conversation not found — Deep Dialogues';container.innerHTML=`<div class="reader"><a href="${appRoute('/')}">Back to gallery</a><h1>Conversation not found</h1></div>`;return;}
   document.title=`${c.title} — Deep Dialogues`;
   const curated=curationFor(c);
   const pin=pinnedExchangeFor(c,curated);

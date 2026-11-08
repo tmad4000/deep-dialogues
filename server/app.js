@@ -6,6 +6,11 @@ import { join } from 'node:path';
 import { validateSubmission, submissionRow } from './store.js';
 import docs from '../api/docs.js';
 
+// The shell's site-wide description/og/twitter tags are replaced by per-conversation ones.
+export function withoutShellShareTags(html) {
+  return html.replace(/[ \t]*<meta (?:name="description"|property="og:[^"]*"|name="twitter:[^"]*")[^>]*>\n?/g, '');
+}
+
 export function createApp(store, root) {
   const app = express();
   app.disable('x-powered-by');
@@ -73,11 +78,11 @@ export function createApp(store, root) {
   });
   app.get('/read/:slug', (req, res) => {
     const c=store.get(req.params.slug);
-    if (!c) return res.status(404).send('Conversation not found');
+    if (!c) return res.status(404).type('html').send('<!doctype html><title>Conversation not found — Deep Dialogues</title><p>Conversation not found. <a href="/">Back to the gallery</a></p>');
     const html=readFileSync(join(root,'dist','index.html'),'utf8');
     const metadata=shareHead({title:c.title,description:curationFor(c)?.description||c.description||'An AI conversation on Deep Dialogues.',url:publicOrigin+'/read/'+encodeURIComponent(c.slug),image:publicOrigin+(c.slug==='basic-needs-work-and-abundance'?'/share/abundance.png':'/share/dialogues.png')});
     res.setHeader('Cache-Control','no-cache');
-    res.type('html').send(html.replace(/<meta name="description"[^>]*>/,'').replace(/<title>[\s\S]*?<\/title>/,() => metadata));
+    res.type('html').send(withoutShellShareTags(html).replace(/<title>[\s\S]*?<\/title>/,() => metadata));
   });
   app.use(express.static(join(root, 'dist'), { index: false, maxAge: '1h' }));
   app.get('/{*path}', (_req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(join(root, 'dist', 'index.html')); });
