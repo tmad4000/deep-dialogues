@@ -94,6 +94,35 @@ test('highlights-only hides a previously published full dialogue', async () => {
   } finally { store.db.close(); }
 });
 
+test('replacing published highlights hides earlier selections and private metadata in public outputs and Noos', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos();
+  const sync = createNoosSync(store, config, { fetchImpl: noos.fetchImpl });
+  try {
+    store.save({ slug: 'selection', title: 'Selection', contributor_name: 'Ada',
+      description: 'secret description', commentary: 'secret commentary', highlights: ['secret highlight'],
+      messages: [{ role: 'human', content: 'first secret' }, { role: 'assistant', content: 'second answer' }] });
+    const first = store.review('selection', { action: 'publish', version: 'both', highlights: [0] });
+    await sync.syncSlugs(first.syncSlugs);
+    const oldSlug = first.rows[1].slug;
+    const oldNode = [...noos.nodes.values()].find(node => node.sourceId === oldSlug);
+    const result = store.review('selection', { action: 'publish', version: 'highlights', highlights: [1] });
+    assert.ok(result.syncSlugs.includes(oldSlug));
+    assert.equal(store.get(oldSlug), null);
+    assert.equal(store.get('selection'), null);
+    const publicRow = store.get(result.rows[1].slug);
+    assert.deepEqual(publicRow.messages.map(message => message.content), ['second answer']);
+    for (const secret of ['first secret', 'secret description', 'secret commentary', 'secret highlight']) {
+      assert.ok(!JSON.stringify(publicRow).includes(secret));
+      assert.ok(!JSON.stringify(store.list({ limit: Infinity })).includes(secret));
+    }
+    await sync.syncRetry();
+    assert.equal(oldNode.visibility, 'private');
+    const newNode = [...noos.nodes.values()].find(node => node.sourceId === publicRow.slug);
+    assert.ok(!JSON.stringify(newNode).includes('secret'));
+  } finally { store.db.close(); }
+});
+
 test('unpublish during creation reconciles the resulting node to private', async () => {
   const store = openStore(':memory:');
   const noos = fakeNoos();

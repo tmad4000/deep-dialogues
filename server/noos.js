@@ -3,6 +3,7 @@
 // The database is the source of truth: a Noos outage records an error and never blocks review.
 import { createHash } from 'node:crypto';
 import { plainText } from '../src/lib/presentation.js';
+import { publicDocument } from './store.js';
 
 const COLLECTION = '__collection__';
 
@@ -93,7 +94,7 @@ export function createNoosSync(store, config, { fetchImpl = fetch } = {}) {
   function desired(slug) {
     const row = store.readRaw(slug);
     const isPublic = row?.status === 'published';
-    const payload = isPublic ? nodePayload({ ...row, versions: Object.fromEntries(Object.entries(row.versions || {}).filter(([, s]) => s === row.slug || store.isPublic(s))) }, config.publicOrigin) : { visibility: 'private' };
+    const payload = isPublic ? nodePayload(publicDocument(row, store.isPublic), config.publicOrigin) : { visibility: 'private' };
     return { isPublic, payload, digest: createHash('sha256').update(JSON.stringify(payload)).digest('hex') };
   }
 

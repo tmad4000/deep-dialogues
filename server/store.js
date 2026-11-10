@@ -121,14 +121,14 @@ export function openStore(filename) {
         }
         if (action !== 'publish' || !['full', 'highlights', 'both'].includes(version)) return { error: 'invalid_action' };
         if (!['pending', 'published', 'unpublished'].includes(row.status)) return { error: 'not_publishable' };
-        const changed = [];
+        const changed = [], retired = [];
         let highlightRow;
         if (version !== 'full') {
           const picks = [...new Set(highlights)].filter(i => Number.isInteger(i) && i >= 0 && i < row.messages.length).sort((a, b) => a - b);
           if (!picks.length) return { error: 'highlights_required' };
           if (picks.length === row.messages.length) return { error: 'highlights_must_be_subset' };
-          const { id, slug: _s, status, review, versions, published_at, featured, ...rest } = row;
-          highlightRow = save({ ...rest, title: (highlightsTitle && String(highlightsTitle).trim().slice(0, 300)) || `${row.title} · Highlights`,
+          const { contributor_name, ai_model, tags, original_url } = row;
+          highlightRow = save({ contributor_name, ai_model, tags, original_url, title: (highlightsTitle && String(highlightsTitle).trim().slice(0, 300)) || `${row.title} · Highlights`,
             slug: uniqueSlug(`${row.slug.replace(/-highlights(-\d+)?$/, '')}-highlights`.slice(0, 120)),
             messages: picks.map(i => row.messages[i]), highlight_source_indices: picks, created_at: now }, 'published');
           if (version === 'highlights') delete highlightRow.original_url;
@@ -136,6 +136,13 @@ export function openStore(filename) {
           highlightRow.review = { ...reviewed, action, version: 'highlights' };
         }
         if (version === 'highlights') {
+          const siblings = db.prepare("SELECT document FROM conversations WHERE status = 'published' AND slug != ? AND json_extract(document, '$.versions.full') = ?").all(row.slug, row.slug);
+          for (const { document } of siblings) {
+            const sibling = JSON.parse(document);
+            Object.assign(sibling, { status: 'superseded', review: { ...reviewed, action, version } });
+            writeRaw(sibling);
+            retired.push(sibling);
+          }
           // The full transcript stays private; the public highlights do not link to it.
           highlightRow.versions = { highlights: highlightRow.slug };
           Object.assign(row, { status: 'superseded', review: { ...reviewed, action, version } });
@@ -147,6 +154,7 @@ export function openStore(filename) {
         }
         writeRaw(row); changed.push(row);
         if (highlightRow) { writeRaw(highlightRow); changed.push(highlightRow); }
+        changed.push(...retired);
         return finish(changed);
       });
     },
@@ -167,6 +175,11 @@ const PRIVATE = ['submitted_by', 'review', 'highlight_source_indices'];
 export function publicDocument(row, isPublic = () => false) {
   if (!row) return row;
   const out = { ...row };
+  if (row.review?.version === 'highlights') {
+    delete out.description;
+    delete out.commentary;
+    delete out.highlights;
+  }
   if (row.review?.version === 'highlights' && (!row.versions?.full || !isPublic(row.versions.full))) delete out.original_url;
   for (const key of PRIVATE) delete out[key];
   if (out.versions) {
