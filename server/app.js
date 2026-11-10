@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import express from 'express';
 import { join } from 'node:path';
 import { validateSubmission, submissionRow } from './store.js';
+import { authConfigFromEnv, createAuth, requireSameOrigin } from './auth.js';
 import docs from '../api/docs.js';
 
 // The shell's site-wide description/og/twitter tags are replaced by per-conversation ones.
@@ -11,7 +12,9 @@ export function withoutShellShareTags(html) {
   return html.replace(/[ \t]*<meta (?:name="description"|property="og:[^"]*"|name="twitter:[^"]*")[^>]*>\n?/g, '');
 }
 
-export function createApp(store, root) {
+const PRIVATE_API = /^\/(me|my|admin)(\/|$)/;
+
+export function createApp(store, root, { authConfig = authConfigFromEnv(), auth = createAuth(store, authConfig), noos = null } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
@@ -23,6 +26,8 @@ export function createApp(store, root) {
   });
   app.use('/api', (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
+    // Account routes are same-origin only; the public read/submit API stays open to any origin.
+    if (PRIVATE_API.test(req.path)) return next();
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -40,8 +45,71 @@ export function createApp(store, root) {
   }, express.json({ limit: '5mb', inflate: false }), (req, res) => {
     const error = validateSubmission(req.body);
     if (error) return res.status(400).json({ error });
-    res.status(201).json(store.save(submissionRow(req.body)));
+    const row = submissionRow(req.body);
+    // Credit the Ideaflow identity only for the site's own same-origin requests.
+    const user = sameOriginScript(req) ? auth.currentUser(req) : null;
+    if (user) {
+      row.submitted_by = { sub: user.sub, name: user.name, email: user.email };
+      if (!row.contributor_name && user.name) row.contributor_name = user.name;
+    }
+    const saved = store.save(row);
+    res.status(201).json(user ? saved : publicSubmission(saved));
   });
+
+  const sameOriginScript = req => req.headers['x-requested-with'] === 'deep-dialogues' && req.headers.origin === authConfig.publicOrigin
+    || (!authConfig.secureCookies && req.headers['x-requested-with'] === 'deep-dialogues');
+  const publicSubmission = ({ submitted_by, review, ...row }) => row;
+  const signedIn = (req, res, next) => { req.user = auth.currentUser(req); if (!req.user) return res.status(401).json({ error: 'Sign in with Ideaflow to continue' }); next(); };
+  const admin = (req, res, next) => signedIn(req, res, () => req.user.admin ? next() : res.status(403).json({ error: 'Administrators only' }));
+  const asyncRoute = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+  const ownView = row => ({ slug: row.slug, title: row.title, status: row.status, created_at: row.created_at, updated_at: row.updated_at,
+    published_at: row.published_at, turn_count: row.turn_count, contributor_name: row.contributor_name, tags: row.tags || [],
+    description: row.description, original_url: row.original_url, ai_model: row.ai_model, messages: row.messages,
+    review: row.review && { action: row.review.action, version: row.review.version, at: row.review.at, reason: row.review.reason }, versions: row.versions });
+
+  app.get('/auth/login', asyncRoute(auth.login));
+  app.get('/auth/callback', asyncRoute(auth.callback));
+  app.post('/auth/logout', requireSameOrigin(authConfig), auth.logout);
+
+  app.use(['/api/my', '/api/admin'], requireSameOrigin(authConfig));
+  app.get('/api/me', (req, res) => {
+    const user = auth.currentUser(req);
+    res.json({ signInAvailable: authConfig.enabled, user: user && { name: user.name, email: user.email, admin: user.admin } });
+  });
+  app.get('/api/my/submissions', signedIn, (req, res) => res.json(store.bySubmitter(req.user.sub).map(ownView)));
+  app.get('/api/my/submissions/:slug', signedIn, (req, res) => {
+    const row = store.readRaw(req.params.slug);
+    if (!row || row.submitted_by?.sub !== req.user.sub) return res.status(404).json({ error: 'Submission not found' });
+    res.json(ownView(row));
+  });
+  app.put('/api/my/submissions/:slug', signedIn, express.json({ limit: '5mb', inflate: false }), (req, res) => {
+    const error = validateSubmission(req.body);
+    if (error) return res.status(400).json({ error });
+    const result = store.updatePending(req.params.slug, req.user.sub, req.body);
+    if (result.error === 'not_found') return res.status(404).json({ error: 'Submission not found' });
+    if (result.error) return res.status(409).json({ error: 'Only submissions awaiting review can be edited' });
+    res.json(ownView(result.row));
+  });
+
+  const adminView = row => ({ ...ownView(row), submitted_by: row.submitted_by && { name: row.submitted_by.name, email: row.submitted_by.email }, commentary: row.commentary, featured: !!row.featured });
+  app.get('/api/admin/queue', admin, (req, res) => {
+    const status = ['pending', 'published', 'rejected', 'unpublished', 'superseded'].includes(req.query.status) ? req.query.status : 'pending';
+    res.json(store.byStatus(status).map(({ messages, ...row }) => ({ ...adminView({ ...row, messages: [] }), messages: undefined, turn_count: row.turn_count })));
+  });
+  app.get('/api/admin/conversations/:slug', admin, (req, res) => {
+    const row = store.readRaw(req.params.slug);
+    if (!row) return res.status(404).json({ error: 'Conversation not found' });
+    res.json({ ...adminView(row), noos: noos?.status(row.slug) || null });
+  });
+  app.post('/api/admin/conversations/:slug/review', admin, express.json({ limit: '64kb', inflate: false }), asyncRoute(async (req, res) => {
+    const { action, version, highlights, highlights_title: highlightsTitle, reason } = req.body || {};
+    const result = store.review(req.params.slug, { action, version, highlights: Array.isArray(highlights) ? highlights : [], highlightsTitle, reason, reviewer: { sub: req.user.sub, name: req.user.name } });
+    if (result.error === 'not_found') return res.status(404).json({ error: 'Conversation not found' });
+    if (result.error) return res.status(409).json({ error: result.error });
+    // Noos publication follows the database; a Noos outage never blocks review.
+    const noosResults = noos ? await noos.syncSlugs(result.rows.map(r => r.slug)) : [];
+    res.json({ rows: result.rows.map(adminView), noos: noosResults });
+  }));
   app.get('/health', (_req, res) => {
     store.db.prepare('SELECT 1').get();
     res.json({ ok: true, storage: 'sqlite', release: process.env.RELEASE_COMMIT || 'development' });

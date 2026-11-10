@@ -33,7 +33,8 @@ export async function getConversation(slug) {
 }
 
 export async function submitConversation(conversation) {
-  const row = await request('/conversations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(conversation) });
+  // Same-origin requests carry the optional Ideaflow session so the submission is credited.
+  const row = await request('/conversations', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'deep-dialogues' }, body: JSON.stringify(conversation) });
   cache = null;
   return row;
 }

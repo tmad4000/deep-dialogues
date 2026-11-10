@@ -8,6 +8,14 @@ import { attachReaderTools } from '../lib/reader-tools.js';
 import { excerptFor, renderReaderExcerpt } from '../lib/reader-excerpt.js';
 import { navigationFor, renderReaderNavigation, renderTranscript, attachReaderNavigation } from '../lib/reader-navigation.js';
 
+// Full and highlights versions are separate public conversations linked by the review screen.
+function renderVersionSwitch(c){
+  const v=c.versions;
+  if(!v?.full||!v?.highlights)return '';
+  const tab=(key,label)=>v[key]===c.slug?`<span class="version-tab active" aria-current="page">${label}</span>`:`<a class="version-tab" href="${appRoute('/read/'+encodeURIComponent(v[key]))}">${label}</a>`;
+  return `<nav class="version-switch" aria-label="Versions">${tab('full','Full conversation')}${tab('highlights','Highlights')}</nav>`;
+}
+
 export async function renderReader(container,params,query={},context={}) {
   container.innerHTML='<div class="reader"><p>Loading conversation…</p></div>';
   document.title='Deep Dialogues';
@@ -23,6 +31,7 @@ export async function renderReader(container,params,query={},context={}) {
   container.innerHTML=`<article class="reader" id="reader-top">
     <a class="reader-back" href="${appRoute('/')}">← Gallery</a>
     <header class="reader-header reader-header-integrated"><h1 class="reader-title">${e(c.title)}</h1><div class="reader-meta"><span>${e(c.ai_model||'AI conversation')}</span><span>${c.messages.length} messages</span><span>${e(c.contributor_name||'')}</span></div></header>
+    ${renderVersionSwitch(c)}
     ${renderReaderNavigation(c,navigation)}
     ${renderPinnedExchange(c,pin)}
     ${renderReaderExcerpt(c,excerpt)}

@@ -2,6 +2,8 @@ import { escapeHTML, safeHTML } from '../lib/html.js';
 import { parseConversation } from '../lib/parser.js';
 import { submitConversation } from '../lib/store.js';
 import { fetchShareLink } from '../lib/fetcher.js';
+import { loadSession, signInHref } from '../lib/session.js';
+import { appRoute } from '../lib/paths.js';
 
 const PASTE_PLACEHOLDER = `Paste a conversation here...\n\nFormat: each message starts with a role label like:\n\nHuman: What is consciousness?\n\nClaude: That depends on what framework...\n\nOr upload a JSONL file from Claude Code.`;
 
@@ -12,6 +14,8 @@ export function renderSubmit(container) {
   let submitted = false;
   let fetching = false;
   let fetchError = null;
+  let session = { signInAvailable: false, user: null };
+  loadSession().then(s => { session = s; if (!submitting) render(); });
 
   function render() {
     if (submitted) {
@@ -66,6 +70,8 @@ export function renderSubmit(container) {
             Upload an interesting, beautiful, or illuminating AI conversation.
             Paste a share link, paste the text, or upload a file.
           </p>
+          ${session.user ? `<p class="account-note">Submitting as <strong>${escapeHTML(session.user.name || session.user.email || 'your Ideaflow account')}</strong>. You can track and edit it under <a href="${appRoute('/my')}">My submissions</a>.</p>`
+            : session.signInAvailable ? `<p class="account-note"><a href="${escapeHTML(signInHref('/#/submit'))}">Sign in with Ideaflow</a> to be credited and to edit your submission before it is published. Signing in is optional.</p>` : ''}
         </header>
 
         <div class="submit-tabs">
@@ -101,7 +107,7 @@ export function renderSubmit(container) {
           <div class="form-group">
             <label class="form-label">Your name (optional)</label>
             <input class="form-input" id="meta-contributor" type="text"
-              placeholder="How should you be credited?">
+              placeholder="How should you be credited?" value="${escapeHTML(session.user?.name || '')}">
           </div>
           <div class="form-group">
             <label class="form-label">Tags (comma separated)</label>
@@ -146,6 +152,7 @@ export function renderSubmit(container) {
           <div class="check">&#10003;</div>
           <h3>Conversation submitted</h3>
           <p>It will appear in the gallery once reviewed. Thank you for sharing.</p>
+          ${session.user ? `<p><a href="${appRoute('/my')}">See it in My submissions</a> — you can edit it until it is published.</p>` : ''}
           <button class="btn-secondary" id="another-btn">Submit another</button>
         </div>
       </div>

@@ -12,6 +12,14 @@ export function openStore(filename) {
     CREATE TABLE IF NOT EXISTS conversations (
       id TEXT PRIMARY KEY, slug TEXT UNIQUE NOT NULL, status TEXT NOT NULL,
       featured INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, document TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+      id_hash TEXT PRIMARY KEY, sub TEXT NOT NULL, name TEXT, email TEXT, email_verified INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL, expires_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at);
+    CREATE TABLE IF NOT EXISTS noos_sync (
+      slug TEXT PRIMARY KEY, node_id TEXT, digest TEXT, state TEXT NOT NULL, error TEXT, updated_at TEXT NOT NULL
     );`);
   const insert = db.prepare('INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?)');
   const save = (input, status = 'pending') => {
@@ -31,17 +39,100 @@ export function openStore(filename) {
     const r = db.prepare('SELECT document FROM conversations WHERE slug = ?').get(slug);
     return r ? JSON.parse(r.document) : null;
   };
+  const writeRaw = row => db.prepare('UPDATE conversations SET status = ?, featured = ?, document = ? WHERE slug = ?')
+    .run(row.status, row.featured ? 1 : 0, JSON.stringify(row), row.slug);
+  const transaction = fn => {
+    db.exec('BEGIN IMMEDIATE');
+    try { const result = fn(); db.exec('COMMIT'); return result; }
+    catch (error) { db.exec('ROLLBACK'); throw error; }
+  };
+  const publishedStmt = db.prepare("SELECT 1 FROM conversations WHERE slug = ? AND status = 'published'");
+  const isPublic = slug => !!publishedStmt.get(slug);
+  const uniqueSlug = base => {
+    let slug = base;
+    for (let n = 2; exists.get(slug); n++) slug = `${base}-${n}`;
+    return slug;
+  };
   return {
-    db, save,
+    db, save, readRaw, transaction, isPublic,
     list({ contributor, tag, limit = 20, offset = 0 } = {}) {
       const rows = db.prepare("SELECT document FROM conversations WHERE status = 'published' ORDER BY featured DESC, created_at DESC").all()
-        .map(r => JSON.parse(r.document))
+        .map(r => publicDocument(JSON.parse(r.document), isPublic))
         .filter(r => (!contributor || r.contributor_name?.toLowerCase() === contributor.toLowerCase()) && (!tag || r.tags?.includes(tag)));
       return rows.slice(offset, offset + limit);
     },
     get(slug, includePending = false) {
       const row = readRaw(slug);
-      return row && (includePending || row.status === 'published') ? presentConversation(row) : null;
+      if (!row || !(includePending || row.status === 'published')) return null;
+      return presentConversation(includePending ? row : publicDocument(row, isPublic));
+    },
+    bySubmitter(sub) {
+      return db.prepare("SELECT document FROM conversations WHERE json_extract(document, '$.submitted_by.sub') = ? ORDER BY created_at DESC")
+        .all(sub).map(r => JSON.parse(r.document));
+    },
+    byStatus(status) {
+      return db.prepare('SELECT document FROM conversations WHERE status = ? ORDER BY created_at DESC').all(status).map(r => JSON.parse(r.document));
+    },
+    // A contributor may edit only their own submission, and only while it awaits review.
+    updatePending(slug, sub, body) {
+      return transaction(() => {
+        const row = readRaw(slug);
+        if (!row || row.submitted_by?.sub !== sub) return { error: 'not_found' };
+        if (row.status !== 'pending') return { error: 'not_editable' };
+        const fresh = submissionRow(body);
+        // Omitting contributor_name keeps the existing credit; an empty string clears it.
+        for (const key of EDITABLE) if (key in fresh) row[key] = fresh[key]; else if (key !== 'contributor_name') delete row[key];
+        row.messages = fresh.messages; row.turn_count = row.messages.length; row.updated_at = new Date().toISOString();
+        writeRaw(row);
+        return { row };
+      });
+    },
+    // Review outcome. version: full | highlights | both. Highlights are a separate, cross-linked published row.
+    review(slug, { action, version = 'full', highlights = [], highlightsTitle, reviewer, reason } = {}) {
+      return transaction(() => {
+        const row = readRaw(slug);
+        if (!row) return { error: 'not_found' };
+        const now = new Date().toISOString();
+        const reviewed = { by: reviewer, at: now };
+        if (action === 'reject') {
+          if (row.status !== 'pending') return { error: 'not_pending' };
+          Object.assign(row, { status: 'rejected', review: { ...reviewed, action, reason: reason ? String(reason).slice(0, 2000) : undefined } });
+          writeRaw(row); return { rows: [row] };
+        }
+        if (action === 'unpublish') {
+          if (row.status !== 'published') return { error: 'not_published' };
+          Object.assign(row, { status: 'unpublished', review: { ...reviewed, action } });
+          writeRaw(row); return { rows: [row] };
+        }
+        if (action !== 'publish' || !['full', 'highlights', 'both'].includes(version)) return { error: 'invalid_action' };
+        if (!['pending', 'published', 'unpublished'].includes(row.status)) return { error: 'not_publishable' };
+        const changed = [];
+        let highlightRow;
+        if (version !== 'full') {
+          const picks = [...new Set(highlights)].filter(i => Number.isInteger(i) && i >= 0 && i < row.messages.length).sort((a, b) => a - b);
+          if (!picks.length) return { error: 'highlights_required' };
+          if (picks.length === row.messages.length) return { error: 'highlights_must_be_subset' };
+          const { id, slug: _s, status, review, versions, published_at, featured, ...rest } = row;
+          highlightRow = save({ ...rest, title: (highlightsTitle && String(highlightsTitle).trim().slice(0, 300)) || `${row.title} · Highlights`,
+            slug: uniqueSlug(`${row.slug.replace(/-highlights(-\d+)?$/, '')}-highlights`.slice(0, 120)),
+            messages: picks.map(i => row.messages[i]), highlight_source_indices: picks, created_at: now }, 'published');
+          highlightRow.published_at = now;
+          highlightRow.review = { ...reviewed, action, version: 'highlights' };
+        }
+        if (version === 'highlights') {
+          // The full transcript stays private; the public highlights do not link to it.
+          highlightRow.versions = { highlights: highlightRow.slug };
+          Object.assign(row, { status: row.status === 'published' ? 'published' : 'superseded', review: { ...reviewed, action, version } });
+          if (row.status === 'published') row.versions = { ...row.versions, full: row.slug, highlights: highlightRow.slug };
+        } else {
+          Object.assign(row, { status: 'published', published_at: row.published_at || now, review: { ...reviewed, action, version } });
+          row.versions = { ...row.versions, full: row.slug, ...(highlightRow ? { highlights: highlightRow.slug } : {}) };
+          if (highlightRow) highlightRow.versions = { full: row.slug, highlights: highlightRow.slug };
+        }
+        writeRaw(row); changed.push(row);
+        if (highlightRow) { writeRaw(highlightRow); changed.push(highlightRow); }
+        return { rows: changed };
+      });
     },
     publish(slug) {
       const row = readRaw(slug);
@@ -51,6 +142,21 @@ export function openStore(filename) {
       return row;
     },
   };
+}
+
+const EDITABLE = ['title', 'contributor_name', 'ai_model', 'description', 'commentary', 'original_url', 'tags', 'highlights'];
+// Private review and identity fields never leave the server on public routes.
+const PRIVATE = ['submitted_by', 'review', 'highlight_source_indices'];
+// isPublic(slug) drops links to versions that are not (or no longer) published.
+export function publicDocument(row, isPublic = () => false) {
+  if (!row) return row;
+  const out = { ...row };
+  for (const key of PRIVATE) delete out[key];
+  if (out.versions) {
+    out.versions = Object.fromEntries(Object.entries(out.versions).filter(([, slug]) => slug === row.slug || isPublic(slug)));
+    if (Object.keys(out.versions).length < 2) delete out.versions;
+  }
+  return out;
 }
 
 export function validateSubmission(body) {

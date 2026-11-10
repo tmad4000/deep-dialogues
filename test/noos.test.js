@@ -1,0 +1,78 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { openStore } from '../server/store.js';
+import { createNoosSync, nodePayload } from '../server/noos.js';
+
+function fakeNoos({ failOnce = false } = {}) {
+  const nodes = new Map(), calls = [];
+  let n = 0, failed = false;
+  const fetchImpl = async (url, init) => {
+    const u = new URL(url), body = init.body ? JSON.parse(init.body) : null;
+    calls.push({ method: init.method, path: u.pathname, body, auth: init.headers.Authorization });
+    const json = (v, status = 200) => new Response(JSON.stringify(v), { status, headers: { 'Content-Type': 'application/json' } });
+    if (failOnce && !failed) { failed = true; return new Response('secret upstream detail', { status: 503 }); }
+    if (init.method === 'GET') return json({ nodes: [...nodes.values()].filter(x => x.externalUri === u.searchParams.get('externalUri')) });
+    if (init.method === 'POST') { const id = `node${String(++n).padStart(8, '0')}`; nodes.set(id, { id, ...body }); return json({ id, ...body }, 201); }
+    if (init.method === 'PUT') { const id = decodeURIComponent(u.pathname.split('/').pop()); Object.assign(nodes.get(id), body); return json(nodes.get(id)); }
+  };
+  return { nodes, calls, fetchImpl };
+}
+const config = { enabled: true, baseUrl: 'http://noos.test', apiKey: 'noos_test', publicOrigin: 'https://dd.test' };
+
+test('only published dialogues reach Noos, with stable upserts and unpublish hiding', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos();
+  const sync = createNoosSync(store, config, { fetchImpl: noos.fetchImpl });
+  try {
+    const pending = store.save({ slug: 'secret-draft', title: 'Private draft', messages: [{ role: 'human', content: 'private words' }], submitted_by: { sub: 's', email: 'a@b.c' } });
+    const results = await sync.syncAll();
+    assert.ok(results.every(r => r.state === 'synced'));
+    const dialogues = [...noos.nodes.values()].filter(x => x.type === 'note');
+    assert.equal(dialogues.length, store.list({ limit: Infinity }).length);
+    const everything = JSON.stringify([...noos.nodes.values()]);
+    for (const leak of ['secret-draft', 'private words', 'a@b.c', 'submitted_by']) assert.ok(!everything.includes(leak), leak);
+    assert.ok(dialogues.every(x => x.visibility === 'public' && x.externalUri.startsWith('https://dd.test/read/') && x.tags.includes('deep-dialogues')));
+    const collection = [...noos.nodes.values()].find(x => x.type === 'list');
+    assert.equal(collection.title, 'Deep Dialogues');
+    assert.ok(dialogues.every(x => x.parentId === collection.id));
+    assert.ok(noos.calls.every(c => c.auth === 'Bearer noos_test'));
+
+    // Idempotent: a second pass writes nothing.
+    const before = noos.calls.length;
+    await sync.syncAll();
+    assert.equal(noos.calls.length, before);
+
+    // Publication creates one node; unpublishing hides it rather than leaving it public.
+    store.publish(pending.slug);
+    await sync.syncSlugs([pending.slug]);
+    const node = [...noos.nodes.values()].find(x => x.sourceId === pending.slug);
+    assert.equal(node.visibility, 'public');
+    assert.ok(!JSON.stringify(node).includes('a@b.c'));
+    store.review(pending.slug, { action: 'unpublish', reviewer: { sub: 'admin' } });
+    await sync.syncAll();
+    assert.equal(node.visibility, 'private');
+    assert.equal(sync.status(pending.slug).state, 'hidden');
+  } finally { store.db.close(); }
+});
+
+test('Noos failures are recorded without upstream bodies and retried', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos({ failOnce: true });
+  const sync = createNoosSync(store, config, { fetchImpl: noos.fetchImpl });
+  try {
+    const slug = store.list({ limit: 1 })[0].slug;
+    const [first] = await sync.syncSlugs([slug]);
+    assert.equal(first.state, 'error');
+    assert.ok(!first.error.includes('secret upstream detail'));
+    const [second] = await sync.syncSlugs([slug]);
+    assert.equal(second.state, 'synced');
+  } finally { store.db.close(); }
+});
+
+test('node payload names participants and links both versions', () => {
+  const payload = nodePayload({ slug: 'x-highlights', title: 'X · Highlights', tags: ['Philosophy of Mind'], contributor_name: 'Jacob',
+    versions: { full: 'x', highlights: 'x-highlights' }, messages: [{ role: 'human', content: '<p>Why?</p>' }, { role: 'assistant', model: 'GPT-6 Astra', content: 'Because' }] }, 'https://dd.test');
+  assert.match(payload.content, /Participants: Jacob, GPT-6 Astra/);
+  assert.match(payload.content, /Highlights of: https:\/\/dd\.test\/read\/x\n/);
+  assert.deepEqual(payload.tags, ['deep-dialogues', 'philosophy-of-mind', 'gpt-6-astra']);
+});
