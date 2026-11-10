@@ -34,12 +34,12 @@ function fakeIssuer() {
   return { fetchImpl, issued, setClaims: fn => { next = fn; } };
 }
 
-async function startApp(env = {}) {
+async function startApp(env = {}, noos = null) {
   const store = openStore(':memory:');
   const authConfig = authConfigFromEnv({ IDEAFLOW_ISSUER: ISSUER, IDEAFLOW_CLIENT_ID: 'dd-client', IDEAFLOW_CLIENT_SECRET: 's3cret', PUBLIC_BASE_URL: ORIGIN, DD_ADMIN_EMAILS: 'admin@example.test', ...env });
   const issuer = fakeIssuer();
   const auth = createAuth(store, authConfig, { fetchImpl: issuer.fetchImpl });
-  const server = createApp(store, process.cwd(), { authConfig, auth }).listen(0, '127.0.0.1');
+  const server = createApp(store, process.cwd(), { authConfig, auth, noos }).listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));
   const url = `http://127.0.0.1:${server.address().port}`;
   return { store, issuer, url, close: () => new Promise(resolve => server.close(() => { store.db.close(); resolve(); })) };
@@ -195,4 +195,29 @@ test('callback rejects forged state, wrong audience and replayed nonce; login de
 test('post-login destinations stay on this site', () => {
   for (const bad of ['https://evil.example', '//evil.example', '/\\evil.example', 'javascript:alert(1)', '/x\r\nSet-Cookie: a=b', undefined]) assert.equal(safeReturnPath(bad), '/');
   assert.equal(safeReturnPath('/read/x?at=message-2'), '/read/x?at=message-2');
+});
+
+
+test('review responds before Noos synchronization finishes', async () => {
+  let release, started;
+  const blocked = new Promise(resolve => { release = resolve; });
+  const entered = new Promise(resolve => { started = resolve; });
+  let finished = false;
+  const noos = { enabled: true, status: () => null, syncSlugs: async () => { started(); await blocked; finished = true; } };
+  const ctx = await startApp({}, noos);
+  try {
+    const { session } = await signIn(ctx, { sub: 'admin', email: 'admin@example.test', email_verified: true });
+    const row = ctx.store.save({ slug: 'queued-review', title: 'Queued', messages: [{ role: 'human', content: 'Hello' }] });
+    const response = await fetch(`${ctx.url}/api/admin/conversations/${row.slug}/review`, { method: 'POST', headers: write(session), body: JSON.stringify({ action: 'publish' }) });
+    const result = await response.json();
+    await entered;
+    assert.equal(response.status, 200);
+    assert.equal(ctx.store.readRaw(row.slug).status, 'published');
+    assert.deepEqual(result.noos, [{ slug: row.slug, state: 'queued' }]);
+    assert.equal(finished, false);
+    release();
+    await blocked;
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(finished, true);
+  } finally { release(); await ctx.close(); }
 });

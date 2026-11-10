@@ -169,6 +169,8 @@ than one month was introduced during the recovery. Safe HTML rendering and a
 content security policy restrict imported markup. The old Vercel/Supabase
 function sources are legacy, not the production API.
 
+Unpublishing a bundled seed dialogue hides it from the live site and API, but its previously public text remains available in older static bundles.
+
 ## Reading, highlights and sharing
 
 The Waves of Thought reader begins with Jacob’s previously reviewed six-message

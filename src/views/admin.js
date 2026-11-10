@@ -77,8 +77,8 @@ async function renderDetail(container, slug, status, context) {
     out.textContent = 'Saving…';
     try {
       const result = await account(`/api/admin/conversations/${encodeURIComponent(row.slug)}/review`, { method: 'POST', body });
-      const failed = result.noos?.filter(n => n.state === 'error').length;
-      out.innerHTML = `Done. ${result.rows.filter(r => r.status === 'published').map(r => `<a href="${e(readerLink(r.slug))}">${e(r.title)}</a>`).join(' · ')}${failed ? ' — Noos sync will retry.' : ''}`;
+      const queued = result.noos?.some(n => n.state === 'queued');
+      out.innerHTML = `Done. ${result.rows.filter(r => r.status === 'published').map(r => `<a href="${e(readerLink(r.slug))}">${e(r.title)}</a>`).join(' · ')}${queued ? ' — Noos sync queued.' : ''}`;
       setTimeout(() => { location.hash = `#/admin?status=${status}`; }, 1500);
     } catch (error) { out.textContent = error.message.replace(/_/g, ' '); }
   };

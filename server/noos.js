@@ -150,6 +150,7 @@ export function createNoosSync(store, config, { fetchImpl = fetch } = {}) {
   async function syncRetry() {
     const rows = store.db.prepare(`SELECT c.slug FROM conversations c LEFT JOIN noos_sync n ON n.slug = c.slug
       WHERE n.state = 'error' OR (c.status = 'published' AND (n.slug IS NULL OR n.state != 'synced'))
+        OR (c.status != 'published' AND n.state = 'synced')
       UNION SELECT slug FROM noos_sync WHERE state = 'error' AND slug != ?`).all(COLLECTION);
     return syncSlugs(rows.map(row => row.slug));
   }

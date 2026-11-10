@@ -5,8 +5,13 @@ let cache = null;
 
 async function request(path, options) {
   const response = await fetch(`${apiBase}/api${path}`, options);
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Could not reach the conversation library');
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(result?.error || 'Could not reach the conversation library');
+    error.status = response.status;
+    throw error;
+  }
+  if (result === null) throw new Error('Invalid response from the conversation library');
   return result;
 }
 
@@ -29,7 +34,10 @@ export async function getConversations() {
 
 export async function getConversation(slug) {
   try { return await request(`/conversations/${encodeURIComponent(slug)}`); }
-  catch { return seedConversations.find(c => c.slug === slug) || null; }
+  catch (error) {
+    if (error.status) return null;
+    return seedConversations.find(c => c.slug === slug) || null;
+  }
 }
 
 export async function submitConversation(conversation) {
