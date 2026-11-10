@@ -106,7 +106,7 @@ export function createApp(store, root, { authConfig = authConfigFromEnv(), auth 
     const result = store.review(req.params.slug, { action, version, highlights: Array.isArray(highlights) ? highlights : [], highlightsTitle, reason, reviewer: { sub: req.user.sub, name: req.user.name } });
     if (result.error === 'not_found') return res.status(404).json({ error: 'Conversation not found' });
     if (result.error) return res.status(409).json({ error: result.error });
-    const slugs = result.rows.map(r => r.slug);
+    const slugs = result.syncSlugs;
     if (noos?.enabled) Promise.resolve().then(() => noos.syncSlugs(slugs)).catch(error => console.error('Noos sync failed:', error.message));
     res.json({ rows: result.rows.map(adminView), noos: noos?.enabled ? slugs.map(slug => ({ slug, state: 'queued' })) : [] });
   }));

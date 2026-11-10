@@ -101,7 +101,7 @@ export function createNoosSync(store, config, { fetchImpl = fetch } = {}) {
     while (true) {
       const { isPublic, payload, digest } = desired(slug);
       const known = get(slug);
-      if (known?.digest === digest && known.state === (isPublic ? 'synced' : 'hidden')) return { slug, state: known.state, node_id: known.node_id };
+      if (known?.digest === digest && (known.state === (isPublic ? 'synced' : 'hidden') || (!isPublic && known.state === 'skipped'))) return { slug, state: known.state, node_id: known.node_id };
       let nodeId = known?.node_id;
       try {
         const uri = `${config.publicOrigin}/read/${encodeURIComponent(slug)}`;
@@ -114,10 +114,18 @@ export function createNoosSync(store, config, { fetchImpl = fetch } = {}) {
           const { type, externalUri, sourceType, sourceId, sourceUrl, sourceAuthorName, sourceTimestamp, idempotencyKey, ...update } = payload;
           await api('PUT', `/api/nodes/${encodeURIComponent(nodeId)}`, update);
         }
-        const state = isPublic ? 'synced' : 'hidden';
+        if (JSON.stringify(get(slug)) !== JSON.stringify(known)) {
+          if (nodeId) store.db.prepare('UPDATE noos_sync SET node_id = ? WHERE slug = ?').run(nodeId, slug);
+          continue;
+        }
+        const state = isPublic ? 'synced' : nodeId ? 'hidden' : 'skipped';
         record(slug, { node_id: nodeId, digest, state });
         if (desired(slug).digest === digest) return { slug, state, node_id: nodeId };
       } catch (error) {
+        if (JSON.stringify(get(slug)) !== JSON.stringify(known)) {
+          if (nodeId) store.db.prepare('UPDATE noos_sync SET node_id = ? WHERE slug = ?').run(nodeId, slug);
+          continue;
+        }
         record(slug, { node_id: nodeId, digest: null, state: 'error', error: error.message.slice(0, 300) });
         console.error('Noos sync failed:', slug, error.message);
         return { slug, state: 'error', error: error.message };
@@ -149,9 +157,9 @@ export function createNoosSync(store, config, { fetchImpl = fetch } = {}) {
 
   async function syncRetry() {
     const rows = store.db.prepare(`SELECT c.slug FROM conversations c LEFT JOIN noos_sync n ON n.slug = c.slug
-      WHERE n.state = 'error' OR (c.status = 'published' AND (n.slug IS NULL OR n.state != 'synced'))
+      WHERE n.state IN ('pending', 'error') OR (c.status = 'published' AND (n.slug IS NULL OR n.state != 'synced'))
         OR (c.status != 'published' AND n.state = 'synced')
-      UNION SELECT slug FROM noos_sync WHERE state = 'error' AND slug != ?`).all(COLLECTION);
+      UNION SELECT slug FROM noos_sync WHERE state IN ('pending', 'error') AND slug != ?`).all(COLLECTION);
     return syncSlugs(rows.map(row => row.slug));
   }
 

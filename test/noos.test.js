@@ -132,7 +132,7 @@ test('retry selects errors and published rows without a synced record', async ()
     const results = await sync.syncRetry();
     assert.deepEqual(new Set(results.map(r => r.slug)), new Set(['missing', 'private-error']));
     assert.equal(sync.status('missing').state, 'synced');
-    assert.equal(sync.status('private-error').state, 'hidden');
+    assert.equal(sync.status('private-error').state, 'skipped');
   } finally { store.db.close(); }
 });
 
@@ -146,5 +146,47 @@ test('pending edits preserve omitted fields and clear explicit null or empty fie
     assert.deepEqual(row.highlights, ['keep']);
     assert.equal(row.description, undefined);
     assert.equal(row.contributor_name, undefined);
+  } finally { store.db.close(); }
+});
+
+
+test('pending review recovers an unrecorded public node after a crash', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos();
+  const sync = createNoosSync(store, config, { fetchImpl: noos.fetchImpl });
+  try {
+    store.save({ slug: 'crashed', title: 'Crashed', messages: [{ role: 'human', content: 'private' }] }, 'published');
+    noos.nodes.set('lost-node', { id: 'lost-node', externalUri: 'https://dd.test/read/crashed', visibility: 'public' });
+    const result = store.review('crashed', { action: 'unpublish' });
+    assert.deepEqual(result.syncSlugs, ['crashed']);
+    assert.equal(sync.status('crashed').state, 'pending');
+    assert.equal(sync.status('crashed').node_id, null);
+    await sync.syncRetry();
+    assert.equal(noos.nodes.get('lost-node').visibility, 'private');
+    assert.equal(sync.status('crashed').node_id, 'lost-node');
+    assert.equal(sync.status('crashed').state, 'hidden');
+  } finally { store.db.close(); }
+});
+
+test('visibility changes queue linked public siblings and refresh their Noos links', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos();
+  const sync = createNoosSync(store, config, { fetchImpl: noos.fetchImpl });
+  try {
+    store.save({ slug: 'pair', title: 'Pair', messages: [{ role: 'human', content: 'one' }, { role: 'assistant', content: 'two' }] });
+    const published = store.review('pair', { action: 'publish', version: 'both', highlights: [0] });
+    await sync.syncSlugs(published.syncSlugs);
+    const highlights = published.rows[1].slug;
+    const node = [...noos.nodes.values()].find(n => n.sourceId === highlights);
+    assert.match(node.content, /Highlights of:/);
+    const result = store.review('pair', { action: 'unpublish' });
+    assert.deepEqual(new Set(result.syncSlugs), new Set(['pair', highlights]));
+    assert.equal(sync.status(highlights).state, 'pending');
+    await sync.syncRetry();
+    assert.doesNotMatch(node.content, /Highlights of:/);
+    const republished = store.review('pair', { action: 'publish', version: 'full' });
+    assert.ok(republished.syncSlugs.includes(highlights));
+    await sync.syncSlugs(republished.syncSlugs);
+    assert.match(node.content, /Highlights of:/);
   } finally { store.db.close(); }
 });

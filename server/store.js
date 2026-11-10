@@ -96,16 +96,28 @@ export function openStore(filename) {
         const row = readRaw(slug);
         if (!row) return { error: 'not_found' };
         const now = new Date().toISOString();
+        const wasPublic = row.status === 'published';
+        const priorVersions = Object.values(row.versions || {});
+        const finish = rows => {
+          const slugs = new Set(rows.map(item => item.slug));
+          if (wasPublic !== (row.status === 'published')) {
+            for (const sibling of priorVersions) if (sibling !== row.slug && isPublic(sibling)) slugs.add(sibling);
+          }
+          const queue = db.prepare(`INSERT INTO noos_sync (slug, node_id, digest, state, error, updated_at) VALUES (?, NULL, ?, 'pending', NULL, ?)
+            ON CONFLICT(slug) DO UPDATE SET digest = excluded.digest, state = 'pending', error = NULL, updated_at = excluded.updated_at`);
+          for (const item of slugs) queue.run(item, randomUUID(), now);
+          return { rows, syncSlugs: [...slugs] };
+        };
         const reviewed = { by: reviewer, at: now };
         if (action === 'reject') {
           if (row.status !== 'pending') return { error: 'not_pending' };
           Object.assign(row, { status: 'rejected', review: { ...reviewed, action, reason: reason ? String(reason).slice(0, 2000) : undefined } });
-          writeRaw(row); return { rows: [row] };
+          writeRaw(row); return finish([row]);
         }
         if (action === 'unpublish') {
           if (row.status !== 'published') return { error: 'not_published' };
           Object.assign(row, { status: 'unpublished', review: { ...reviewed, action } });
-          writeRaw(row); return { rows: [row] };
+          writeRaw(row); return finish([row]);
         }
         if (action !== 'publish' || !['full', 'highlights', 'both'].includes(version)) return { error: 'invalid_action' };
         if (!['pending', 'published', 'unpublished'].includes(row.status)) return { error: 'not_publishable' };
@@ -134,7 +146,7 @@ export function openStore(filename) {
         }
         writeRaw(row); changed.push(row);
         if (highlightRow) { writeRaw(highlightRow); changed.push(highlightRow); }
-        return { rows: changed };
+        return finish(changed);
       });
     },
     publish(slug) {

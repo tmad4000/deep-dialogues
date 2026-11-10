@@ -4,7 +4,7 @@ import { account, loadSession, signInHref } from '../lib/session.js';
 import { readerLink } from '../lib/curation.js';
 
 const TABS = [['pending', 'Awaiting review'], ['published', 'Published'], ['rejected', 'Rejected'], ['unpublished', 'Unpublished'], ['superseded', 'Full kept private']];
-const NOOS = { synced: 'In Noos (public)', hidden: 'Hidden in Noos', error: 'Noos sync failed — will retry', skipped: 'Not in Noos' };
+const NOOS = { pending: 'Noos sync queued', synced: 'In Noos (public)', hidden: 'Hidden in Noos', error: 'Noos sync failed — will retry', skipped: 'Not in Noos' };
 
 export async function renderAdmin(container, _params, query = {}, context = {}) {
   container.innerHTML = '<div class="admin"><p>Loading…</p></div>';
