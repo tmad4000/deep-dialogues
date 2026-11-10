@@ -76,3 +76,75 @@ test('node payload names participants and links both versions', () => {
   assert.match(payload.content, /Highlights of: https:\/\/dd\.test\/read\/x\n/);
   assert.deepEqual(payload.tags, ['deep-dialogues', 'philosophy-of-mind', 'gpt-6-astra']);
 });
+
+test('highlights-only hides a previously published full dialogue', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos();
+  const sync = createNoosSync(store, config, { fetchImpl: noos.fetchImpl });
+  try {
+    const row = store.save({ slug: 'full-private', title: 'Full', messages: [{ role: 'human', content: 'secret' }, { role: 'assistant', content: 'answer' }] }, 'published');
+    await sync.syncOne(row.slug);
+    const result = store.review(row.slug, { action: 'publish', version: 'highlights', highlights: [1] });
+    await sync.syncSlugs(result.rows.map(r => r.slug));
+    assert.equal(store.readRaw(row.slug).status, 'superseded');
+    assert.equal(store.readRaw(row.slug).versions, undefined);
+    assert.equal(store.get(row.slug), null);
+    assert.equal([...noos.nodes.values()].find(n => n.sourceId === row.slug).visibility, 'private');
+    assert.equal(store.get(result.rows[1].slug).versions, undefined);
+  } finally { store.db.close(); }
+});
+
+test('unpublish during creation reconciles the resulting node to private', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos();
+  let release, started;
+  const blocked = new Promise(resolve => { release = resolve; });
+  const entered = new Promise(resolve => { started = resolve; });
+  const fetchImpl = async (url, init) => {
+    if (init.method === 'POST' && JSON.parse(init.body).sourceId === 'racing') {
+      started(); await blocked;
+    }
+    return noos.fetchImpl(url, init);
+  };
+  const sync = createNoosSync(store, config, { fetchImpl });
+  try {
+    store.save({ slug: 'racing', title: 'Race', messages: [{ role: 'human', content: 'secret' }] }, 'published');
+    const publishing = sync.syncOne('racing');
+    await entered;
+    store.review('racing', { action: 'unpublish' });
+    const unpublishing = sync.syncOne('racing');
+    release();
+    await Promise.all([publishing, unpublishing]);
+    assert.equal([...noos.nodes.values()].find(n => n.sourceId === 'racing').visibility, 'private');
+    assert.equal(sync.status('racing').state, 'hidden');
+  } finally { store.db.close(); }
+});
+
+test('retry selects errors and published rows without a synced record', async () => {
+  const store = openStore(':memory:');
+  const noos = fakeNoos();
+  const sync = createNoosSync(store, config, { fetchImpl: noos.fetchImpl });
+  try {
+    await sync.syncAll();
+    store.save({ slug: 'missing', title: 'Missing', messages: [{ role: 'human', content: 'x' }] }, 'published');
+    store.save({ slug: 'private-error', title: 'Private', messages: [{ role: 'human', content: 'x' }] });
+    store.db.prepare("INSERT INTO noos_sync VALUES (?, NULL, NULL, 'error', 'failed', ?)").run('private-error', new Date().toISOString());
+    const results = await sync.syncRetry();
+    assert.deepEqual(new Set(results.map(r => r.slug)), new Set(['missing', 'private-error']));
+    assert.equal(sync.status('missing').state, 'synced');
+    assert.equal(sync.status('private-error').state, 'hidden');
+  } finally { store.db.close(); }
+});
+
+test('pending edits preserve omitted fields and clear explicit null or empty fields', () => {
+  const store = openStore(':memory:');
+  try {
+    const messages = [{ role: 'human', content: 'hello' }];
+    store.save({ slug: 'edit', title: 'Old', messages, commentary: 'keep', highlights: ['keep'], description: 'remove', contributor_name: 'remove', submitted_by: { sub: 'owner' } });
+    const { row } = store.updatePending('edit', 'owner', { title: 'New', messages, description: null, contributor_name: '' });
+    assert.equal(row.commentary, 'keep');
+    assert.deepEqual(row.highlights, ['keep']);
+    assert.equal(row.description, undefined);
+    assert.equal(row.contributor_name, undefined);
+  } finally { store.db.close(); }
+});

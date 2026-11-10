@@ -34,7 +34,8 @@ export async function getConversation(slug) {
 
 export async function submitConversation(conversation) {
   // Same-origin requests carry the optional Ideaflow session so the submission is credited.
-  const row = await request('/conversations', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'deep-dialogues' }, body: JSON.stringify(conversation) });
+  const sameOrigin = !import.meta.env.VITE_API_BASE_URL;
+  const row = await request('/conversations', { method: 'POST', ...(sameOrigin ? { credentials: 'same-origin' } : {}), headers: { 'Content-Type': 'application/json', ...(sameOrigin ? { 'X-Requested-With': 'deep-dialogues' } : {}) }, body: JSON.stringify(conversation) });
   cache = null;
   return row;
 }

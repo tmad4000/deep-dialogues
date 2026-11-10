@@ -15,7 +15,18 @@ export function renderSubmit(container) {
   let fetching = false;
   let fetchError = null;
   let session = { signInAvailable: false, user: null };
-  loadSession().then(s => { session = s; if (!submitting) render(); });
+  loadSession().then(s => {
+    session = s;
+    const notice = container.querySelector('#account-notice');
+    if (notice) notice.innerHTML = accountNotice();
+    const contributor = container.querySelector('#meta-contributor');
+    if (contributor && !contributor.value && !contributor.dataset.touched) contributor.value = session.user?.name || '';
+  });
+
+  function accountNotice() {
+    return session.user ? `<p class="account-note">Submitting as <strong>${escapeHTML(session.user.name || session.user.email || 'your Ideaflow account')}</strong>. You can track and edit it under <a href="${appRoute('/my')}">My submissions</a>.</p>`
+      : session.signInAvailable ? `<p class="account-note"><a href="${escapeHTML(signInHref('/#/submit'))}">Sign in with Ideaflow</a> to be credited and to edit your submission before it is published. Signing in is optional.</p>` : '';
+  }
 
   function render() {
     if (submitted) {
@@ -70,8 +81,7 @@ export function renderSubmit(container) {
             Upload an interesting, beautiful, or illuminating AI conversation.
             Paste a share link, paste the text, or upload a file.
           </p>
-          ${session.user ? `<p class="account-note">Submitting as <strong>${escapeHTML(session.user.name || session.user.email || 'your Ideaflow account')}</strong>. You can track and edit it under <a href="${appRoute('/my')}">My submissions</a>.</p>`
-            : session.signInAvailable ? `<p class="account-note"><a href="${escapeHTML(signInHref('/#/submit'))}">Sign in with Ideaflow</a> to be credited and to edit your submission before it is published. Signing in is optional.</p>` : ''}
+          <div id="account-notice">${accountNotice()}</div>
         </header>
 
         <div class="submit-tabs">
@@ -166,6 +176,7 @@ export function renderSubmit(container) {
   }
 
   function bindEvents() {
+    container.querySelector('#meta-contributor')?.addEventListener('input', e => { e.target.dataset.touched = 'true'; });
     // Tab switching
     container.querySelectorAll('.submit-tab').forEach(tab => {
       tab.addEventListener('click', () => {

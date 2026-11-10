@@ -80,8 +80,11 @@ export function openStore(filename) {
         if (!row || row.submitted_by?.sub !== sub) return { error: 'not_found' };
         if (row.status !== 'pending') return { error: 'not_editable' };
         const fresh = submissionRow(body);
-        // Omitting contributor_name keeps the existing credit; an empty string clears it.
-        for (const key of EDITABLE) if (key in fresh) row[key] = fresh[key]; else if (key !== 'contributor_name') delete row[key];
+        for (const key of EDITABLE) {
+          if (!Object.hasOwn(body, key)) continue;
+          if (body[key] == null || body[key] === '') delete row[key];
+          else row[key] = fresh[key];
+        }
         row.messages = fresh.messages; row.turn_count = row.messages.length; row.updated_at = new Date().toISOString();
         writeRaw(row);
         return { row };
@@ -122,8 +125,8 @@ export function openStore(filename) {
         if (version === 'highlights') {
           // The full transcript stays private; the public highlights do not link to it.
           highlightRow.versions = { highlights: highlightRow.slug };
-          Object.assign(row, { status: row.status === 'published' ? 'published' : 'superseded', review: { ...reviewed, action, version } });
-          if (row.status === 'published') row.versions = { ...row.versions, full: row.slug, highlights: highlightRow.slug };
+          Object.assign(row, { status: 'superseded', review: { ...reviewed, action, version } });
+          delete row.versions;
         } else {
           Object.assign(row, { status: 'published', published_at: row.published_at || now, review: { ...reviewed, action, version } });
           row.versions = { ...row.versions, full: row.slug, ...(highlightRow ? { highlights: highlightRow.slug } : {}) };

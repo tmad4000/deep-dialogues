@@ -88,32 +88,49 @@ export function createNoosSync(store, config, { fetchImpl = fetch } = {}) {
     return id;
   }
 
-  async function syncOne(slug) {
+  const locks = new Map();
+
+  function desired(slug) {
     const row = store.readRaw(slug);
-    const known = get(slug);
     const isPublic = row?.status === 'published';
-    if (!isPublic && !known?.node_id) return { slug, state: 'skipped' };
-    // Only public rows produce content; everything else is reduced to a visibility change.
     const payload = isPublic ? nodePayload({ ...row, versions: Object.fromEntries(Object.entries(row.versions || {}).filter(([, s]) => s === row.slug || store.isPublic(s))) }, config.publicOrigin) : { visibility: 'private' };
-    const digest = createHash('sha256').update(JSON.stringify(payload)).digest('hex');
-    if (known?.digest === digest && known.state !== 'error') return { slug, state: known.state, node_id: known.node_id };
-    try {
-      let nodeId = known?.node_id || (isPublic ? await findByExternalUri(payload.externalUri) : null);
-      if (!nodeId) {
-        const created = await api('POST', '/api/nodes', { ...payload, parentId: await ensureCollection() });
-        nodeId = created.id || created.node?.id;
-      } else {
-        const { type, externalUri, sourceType, sourceId, sourceUrl, sourceAuthorName, sourceTimestamp, idempotencyKey, ...update } = payload;
-        await api('PUT', `/api/nodes/${encodeURIComponent(nodeId)}`, update);
+    return { isPublic, payload, digest: createHash('sha256').update(JSON.stringify(payload)).digest('hex') };
+  }
+
+  async function reconcile(slug) {
+    while (true) {
+      const { isPublic, payload, digest } = desired(slug);
+      const known = get(slug);
+      if (known?.digest === digest && known.state === (isPublic ? 'synced' : 'hidden')) return { slug, state: known.state, node_id: known.node_id };
+      let nodeId = known?.node_id;
+      try {
+        const uri = `${config.publicOrigin}/read/${encodeURIComponent(slug)}`;
+        if (!nodeId) nodeId = await findByExternalUri(uri);
+        if (!nodeId && isPublic) {
+          const created = await api('POST', '/api/nodes', { ...payload, parentId: await ensureCollection() });
+          nodeId = created.id || created.node?.id;
+          if (!nodeId) throw new Error('Noos create returned no node id');
+        } else if (nodeId) {
+          const { type, externalUri, sourceType, sourceId, sourceUrl, sourceAuthorName, sourceTimestamp, idempotencyKey, ...update } = payload;
+          await api('PUT', `/api/nodes/${encodeURIComponent(nodeId)}`, update);
+        }
+        const state = isPublic ? 'synced' : 'hidden';
+        record(slug, { node_id: nodeId, digest, state });
+        if (desired(slug).digest === digest) return { slug, state, node_id: nodeId };
+      } catch (error) {
+        record(slug, { node_id: nodeId, digest: null, state: 'error', error: error.message.slice(0, 300) });
+        console.error('Noos sync failed:', slug, error.message);
+        return { slug, state: 'error', error: error.message };
       }
-      const state = isPublic ? 'synced' : 'hidden';
-      record(slug, { node_id: nodeId, digest, state });
-      return { slug, state, node_id: nodeId };
-    } catch (error) {
-      record(slug, { node_id: known?.node_id, digest: null, state: 'error', error: error.message.slice(0, 300) });
-      console.error('Noos sync failed:', slug, error.message);
-      return { slug, state: 'error', error: error.message };
     }
+  }
+
+  function syncOne(slug) {
+    const previous = locks.get(slug) || Promise.resolve();
+    const current = previous.catch(() => {}).then(() => reconcile(slug));
+    locks.set(slug, current);
+    current.finally(() => { if (locks.get(slug) === current) locks.delete(slug); }).catch(() => {});
+    return current;
   }
 
   async function syncSlugs(slugs) {
@@ -130,5 +147,12 @@ export function createNoosSync(store, config, { fetchImpl = fetch } = {}) {
     return syncSlugs([...slugs]);
   }
 
-  return { enabled: config.enabled, status: get, syncOne, syncSlugs, syncAll };
+  async function syncRetry() {
+    const rows = store.db.prepare(`SELECT c.slug FROM conversations c LEFT JOIN noos_sync n ON n.slug = c.slug
+      WHERE n.state = 'error' OR (c.status = 'published' AND (n.slug IS NULL OR n.state != 'synced'))
+      UNION SELECT slug FROM noos_sync WHERE state = 'error' AND slug != ?`).all(COLLECTION);
+    return syncSlugs(rows.map(row => row.slug));
+  }
+
+  return { enabled: config.enabled, status: get, syncOne, syncSlugs, syncAll, syncRetry };
 }
