@@ -1435,3 +1435,36 @@ mark.shared-highlight {background:var(--accent-ai-soft);box-shadow:0 2px 0 var(-
 @media print { .reader-navigation, .chapter-controls { display: none; } }
 
 .reader-navigation > a { position: relative; z-index: 1; transform: translateZ(0); }
+/* ---- Optional Ideaflow account, contributor and review screens ---- */
+.account-slot { display: inline-flex; align-items: center; }
+.nav-signin { white-space: nowrap; }
+.account-menu { position: relative; }
+.account-menu > summary { list-style: none; cursor: pointer; display: flex; align-items: center; }
+.account-menu > summary::-webkit-details-marker { display: none; }
+.account-menu > div { position: absolute; right: 0; top: calc(100% + 0.5rem); min-width: 11rem; display: flex; flex-direction: column; padding: 0.35rem; background: var(--bg-elevated); border: 1px solid var(--ink-15); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); z-index: 20; }
+.account-menu > div a, .account-menu > div button { display: block; text-align: left; padding: 0.5rem 0.65rem; border-radius: 6px; font: inherit; font-size: 0.85rem; color: inherit; background: none; border: 0; cursor: pointer; text-decoration: none; }
+.account-menu > div a:hover, .account-menu > div button:hover { background: var(--ink-08); }
+.account-note { font-size: 0.88rem; color: var(--ink-70); margin-top: 0.75rem; }
+.account-page, .admin { max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+.account-list { list-style: none; padding: 0; margin: 1.5rem 0; border-top: 1px solid var(--ink-08); }
+.account-row { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 0.9rem 0; border-bottom: 1px solid var(--ink-08); }
+.account-row-title { font-weight: 600; color: inherit; text-decoration: none; }
+.account-row-meta { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; font-size: 0.8rem; color: var(--ink-50); margin-top: 0.3rem; align-items: center; }
+.account-row-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+.status-chip { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; background: var(--ink-08); color: var(--ink-70); }
+.status-published, .status-superseded { background: rgba(90,158,111,0.14); color: var(--accent-success); }
+.status-rejected, .status-unpublished { background: rgba(196,93,74,0.12); color: var(--accent-feature); }
+.review-panel { border: 1px solid var(--ink-15); border-radius: 10px; padding: 1.25rem; margin: 1.5rem 0 2rem; }
+.review-heading { font-size: 1rem; margin: 0 0 0.75rem; }
+.version-choice { border: 0; padding: 0; margin: 0 0 1rem; display: flex; flex-direction: column; gap: 0.45rem; }
+.version-choice label { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.92rem; cursor: pointer; }
+.hint { font-size: 0.82rem; color: var(--ink-50); }
+.pick { display: inline-flex; gap: 0.45rem; align-items: center; cursor: pointer; }
+.pick input { width: 1.05rem; height: 1.05rem; }
+.message-editor { border: 0; padding: 0; margin: 1.5rem 0 0; }
+.empty-note { color: var(--ink-50); margin-top: 1.5rem; }
+.version-switch { display: inline-flex; gap: 0.25rem; padding: 0.25rem; border: 1px solid var(--ink-15); border-radius: 999px; margin: 1rem 0 1.5rem; }
+.version-tab { padding: 0.35rem 0.9rem; border-radius: 999px; font-size: 0.85rem; text-decoration: none; color: var(--ink-70); }
+.version-tab.active { background: var(--ink-08); color: inherit; font-weight: 600; }
+@media (max-width: 640px) { .account-row { flex-direction: column; align-items: flex-start; } .nav-signin { font-size: 0.8rem; } }
+@media (max-width: 400px) { .nav-signin { font-size: 0; } .nav-signin::after { content: 'Sign in'; font-size: 0.8rem; } }

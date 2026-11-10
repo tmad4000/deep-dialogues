@@ -43,8 +43,66 @@ The Supabase schema is retained as historical documentation. Production no
 longer needs Supabase credentials or a running Supabase service.
 
 Public submissions are validated, persisted with `pending` status and omitted
-from public lists and reads. Publication is an operator-only CLI operation;
-there is no public publication/update endpoint.
+from public lists and reads. Publication is limited to editors (the review screen
+below) and the operator CLI; there is no public publication endpoint.
+
+## Sign in with Ideaflow (optional)
+
+Reading never needs an account. Ideaflow ID (`https://id.ideaflow.app/api/auth`;
+the bare origin is not the issuer) is the OpenID Connect provider: authorization
+code flow with PKCE (S256), `client_secret_basic`, and EdDSA-signed ID tokens
+verified with Node's own crypto (no auth dependency). Sessions are opaque random
+`dd_session` cookies (HttpOnly, SameSite=Lax, 30 days, and Secure except on an
+explicit HTTP development origin); only their SHA-256 hash is stored in the
+`sessions` table. Without client credentials the site runs signed out and
+`/auth/login` returns 503.
+
+- **Contributors:** a signed-in, same-origin upload records the Ideaflow subject,
+  name and email as private `submitted_by` and defaults the credit to their name.
+  `#/my` lists their submissions and outcomes; pending ones can be edited until
+  reviewed. `submitted_by`, `review` and highlight indices never appear on public
+  routes. Anonymous uploads still work exactly as before.
+- **Editors:** `#/admin` (`DD_ADMIN_SUBS`, or `DD_ADMIN_EMAILS` with a verified
+  email) reviews the queue: publish the **full** conversation, **highlights only**
+  (ticked messages become a new public conversation and the full transcript stays
+  private, status `superseded`), or **both**, cross-linked through `versions`
+  with a Full/Highlights switch in the reader. Reject (optional note shown to the
+  contributor) and unpublish are also available.
+- Account routes (`/api/me`, `/api/my/*`, `/api/admin/*`) send no CORS headers;
+  writes require this site's `Origin` and `X-Requested-With: deep-dialogues`.
+  HTTP development also permits localhost and 127.0.0.1 origins.
+
+Environment (production: root-owned mode-600 `/etc/deep-dialogues.env`):
+`IDEAFLOW_CLIENT_ID`, `IDEAFLOW_CLIENT_SECRET`, `PUBLIC_BASE_URL`
+(`https://deep-dialogues.ideaflow.app`, which defaults the redirect URI to
+`/auth/callback`), `DD_ADMIN_SUBS`, `DD_ADMIN_EMAILS`, `NOOS_API_URL`,
+`NOOS_API_KEY`. The client is registered as first-party application
+`deep-dialogues` (environment `production`) with ideaflow-auth's
+`register:first-party-client`; local copies live in `~/.config/deep-dialogues/` on
+the M4 and backups in Secret Manager (`boreal-conquest-464203-v2`):
+`deep-dialogues-oidc-client-id`, `deep-dialogues-oidc-client-secret`,
+`deep-dialogues-noos-api-key`.
+For another OIDC deployment, `IDEAFLOW_ISSUER` and `IDEAFLOW_REDIRECT_URI`
+override the issuer and callback URI. Set `PUBLIC_BASE_URL` to the site's origin
+for same-origin account requests and local HTTP development.
+
+## Noos
+
+When Noos is configured, published dialogues are synchronized as public Noos
+notes owned by the `deep_dialogues` agent account, children of one public “Deep Dialogues” list. The
+note carries the title, description or opening prompt, participants (credited
+contributor and AI models), message count, version links and the reader URL
+(`externalUri`, `sourceType=deep-dialogues`). Tags become Noos’s shared `#topic`
+lists, plus `#deep-dialogues` and one per model. Pending, rejected and private
+rows are never sent; unpublishing queues the note to be made private. The `noos_sync` table
+records node IDs and content digests, so unchanged syncs write nothing. Reviews
+queue a background sync, the service reconciles on start, and a Noos outage is recorded
+and retried every five minutes without blocking review. Until a failed unpublish
+sync succeeds, a previously public Noos note may remain public. Manual:
+`node server/manage.js noos-sync [SLUG]`.
+
+The Noos People overlay was not used: it is owner-private by design and cannot
+hold public content.
 
 ```sh
 export DIALOGUES_DB=/var/lib/deep-dialogues/dialogues.sqlite
@@ -106,6 +164,9 @@ responses at the load balancer with `curl --resolve` before changing the
 - `GET /api/conversations/:slug`: full published conversation
 - `POST /api/conversations`: submit to review queue (always pending)
 - `GET /api/contributors`: contributor counts
+- `GET /api/me`, `GET /api/my/submissions`, `GET` or `PUT /api/my/submissions/:slug`,
+  `GET /api/admin/queue`, `GET /api/admin/conversations/:slug`, and
+  `POST /api/admin/conversations/:slug/review`: same-origin account routes (see above)
 - `GET /api/docs`: OpenAPI schema
 - `GET /llms.txt`: machine-readable usage
 
@@ -115,6 +176,8 @@ existing HTTP dependencies are pinned in `overrides`; no dependency younger
 than one month was introduced during the recovery. Safe HTML rendering and a
 content security policy restrict imported markup. The old Vercel/Supabase
 function sources are legacy, not the production API.
+
+Unpublishing a bundled seed dialogue hides it from the live site and API, but its previously public text remains available in older static bundles.
 
 ## Reading, highlights and sharing
 

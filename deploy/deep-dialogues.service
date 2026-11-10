@@ -12,6 +12,8 @@ Environment=API_HOST=172.18.0.1
 Environment=API_PORT=8746
 Environment=DIALOGUES_DB=/var/lib/deep-dialogues/dialogues.sqlite
 EnvironmentFile=-/etc/deep-dialogues-release
+# Root-owned mode-600 secrets: IDEAFLOW_CLIENT_ID/SECRET, DD_ADMIN_SUBS/EMAILS, NOOS_API_URL/KEY.
+EnvironmentFile=-/etc/deep-dialogues.env
 ExecStart=/usr/bin/node server/index.js
 Restart=on-failure
 RestartSec=3

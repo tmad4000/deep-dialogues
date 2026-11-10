@@ -8,7 +8,7 @@ https://deep-dialogues.ideaflow.app
 
 ## Authentication
 
-No authentication required. Submitted conversations go to a review queue (status: "pending") before being published.
+No authentication is required for the public API below. Submitted conversations go to a review queue (status: "pending") before being published. Optional Ideaflow sign-in and account features are described in the project README.
 
 ## Endpoints
 
