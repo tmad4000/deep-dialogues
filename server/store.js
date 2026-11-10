@@ -131,6 +131,7 @@ export function openStore(filename) {
           highlightRow = save({ ...rest, title: (highlightsTitle && String(highlightsTitle).trim().slice(0, 300)) || `${row.title} · Highlights`,
             slug: uniqueSlug(`${row.slug.replace(/-highlights(-\d+)?$/, '')}-highlights`.slice(0, 120)),
             messages: picks.map(i => row.messages[i]), highlight_source_indices: picks, created_at: now }, 'published');
+          if (version === 'highlights') delete highlightRow.original_url;
           highlightRow.published_at = now;
           highlightRow.review = { ...reviewed, action, version: 'highlights' };
         }
@@ -166,6 +167,7 @@ const PRIVATE = ['submitted_by', 'review', 'highlight_source_indices'];
 export function publicDocument(row, isPublic = () => false) {
   if (!row) return row;
   const out = { ...row };
+  if (row.review?.version === 'highlights' && (!row.versions?.full || !isPublic(row.versions.full))) delete out.original_url;
   for (const key of PRIVATE) delete out[key];
   if (out.versions) {
     out.versions = Object.fromEntries(Object.entries(out.versions).filter(([, slug]) => slug === row.slug || isPublic(slug)));

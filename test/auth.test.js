@@ -148,7 +148,7 @@ test('highlights-only publication keeps the full transcript private, and rejecti
   try {
     const user = (await signIn(ctx, { sub: 'u' })).session;
     const admin = (await signIn(ctx, { sub: 'admin-sub' })).session;
-    const a = await (await fetch(`${ctx.url}/api/conversations`, { method: 'POST', headers: write(user), body: JSON.stringify(sample) })).json();
+    const a = await (await fetch(`${ctx.url}/api/conversations`, { method: 'POST', headers: write(user), body: JSON.stringify({ ...sample, original_url: 'https://example.test/full-transcript' }) })).json();
     const b = await (await fetch(`${ctx.url}/api/conversations`, { method: 'POST', headers: write(user), body: JSON.stringify({ ...sample, title: 'Second' }) })).json();
     const bad = await fetch(`${ctx.url}/api/admin/conversations/${a.slug}/review`, { method: 'POST', headers: write(admin), body: JSON.stringify({ action: 'publish', version: 'highlights', highlights: [0, 1, 2, 3] }) });
     assert.equal(bad.status, 409);
@@ -158,6 +158,8 @@ test('highlights-only publication keeps the full transcript private, and rejecti
     const short = await (await fetch(`${ctx.url}/api/conversations/${rows[1].slug}`)).json();
     assert.equal(short.title, 'Short');
     assert.equal(short.versions, undefined);
+    assert.equal(short.original_url, undefined);
+    assert.equal(ctx.store.readRaw(rows[1].slug).original_url, undefined);
     await fetch(`${ctx.url}/api/admin/conversations/${b.slug}/review`, { method: 'POST', headers: write(admin), body: JSON.stringify({ action: 'reject', reason: 'Duplicate' }) });
     const mine = await (await fetch(`${ctx.url}/api/my/submissions`, { headers: { cookie: user } })).json();
     assert.deepEqual(Object.fromEntries(mine.map(r => [r.title, r.status])), { Second: 'rejected', 'Signed-in dialogue': 'superseded', Short: 'published' });

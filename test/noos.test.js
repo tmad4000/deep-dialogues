@@ -190,3 +190,26 @@ test('visibility changes queue linked public siblings and refresh their Noos lin
     assert.match(node.content, /Highlights of:/);
   } finally { store.db.close(); }
 });
+
+
+test('public highlights hide the original source whenever the full version is private', () => {
+  const store = openStore(':memory:');
+  try {
+    const original_url = 'https://example.test/full-transcript';
+    const messages = [{ role: 'human', content: 'first' }, { role: 'assistant', content: 'second' }];
+    store.save({ slug: 'private-source', title: 'Private', original_url, messages });
+    const only = store.review('private-source', { action: 'publish', version: 'highlights', highlights: [0] });
+    assert.equal(store.get(only.rows[1].slug).original_url, undefined);
+    assert.equal(store.readRaw(only.rows[1].slug).original_url, undefined);
+    assert.equal(store.readRaw('private-source').original_url, original_url);
+    store.save({ slug: 'public-source', title: 'Public', original_url, messages });
+    const both = store.review('public-source', { action: 'publish', version: 'both', highlights: [0] });
+    const highlight = both.rows[1].slug;
+    assert.equal(store.get(highlight).original_url, original_url);
+    store.review('public-source', { action: 'unpublish' });
+    assert.equal(store.get(highlight).original_url, undefined);
+    assert.equal(store.list({ limit: Infinity }).find(row => row.slug === highlight).original_url, undefined);
+    store.review('public-source', { action: 'publish', version: 'full' });
+    assert.equal(store.get(highlight).original_url, original_url);
+  } finally { store.db.close(); }
+});
