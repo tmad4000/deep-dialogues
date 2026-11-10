@@ -83,16 +83,17 @@ the M4 and backups in Secret Manager (`boreal-conquest-464203-v2`):
 
 ## Noos
 
-Every **published** dialogue is also a public Noos note owned by the
-`deep_dialogues` agent account, a child of one public “Deep Dialogues” list. The
+When Noos is configured, published dialogues are synchronized as public Noos
+notes owned by the `deep_dialogues` agent account, children of one public “Deep Dialogues” list. The
 note carries the title, description or opening prompt, participants (credited
 contributor and AI models), message count, version links and the reader URL
 (`externalUri`, `sourceType=deep-dialogues`). Tags become Noos’s shared `#topic`
 lists, plus `#deep-dialogues` and one per model. Pending, rejected and private
-rows are never sent; unpublishing makes the note private. The `noos_sync` table
-records node IDs and content digests, so repeated syncs write nothing. Reviews
-sync immediately, the service reconciles on start, and a Noos outage is recorded
-and retried without blocking review. Manual: `node server/manage.js noos-sync [SLUG]`.
+rows are never sent; unpublishing queues the note to be made private. The `noos_sync` table
+records node IDs and content digests, so unchanged syncs write nothing. Reviews
+queue a background sync, the service reconciles on start, and a Noos outage is recorded
+and retried without blocking review. Until a failed unpublish sync succeeds, a previously
+public Noos note may remain public. Manual: `node server/manage.js noos-sync [SLUG]`.
 
 The Noos People overlay was not used: it is owner-private by design and cannot
 hold public content.
