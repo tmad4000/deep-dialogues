@@ -25,6 +25,14 @@ async function execute(file, globals, imports) {
   return module.namespace;
 }
 
+async function navigationImports() {
+  const module = await execute('../src/lib/reader-navigation.js', { URL }, {
+    './html.js': { escapeHTML: v => String(v), safeHTML: v => v },
+    './curation.js': { readerLink }
+  });
+  return { ...module, attachReaderNavigation: () => () => {} };
+}
+
 test('citation-only operator edits survive presentation', () => {
   const edited = structuredClone(conversation);
   const message = edited.messages.find(m => m.content.includes('href="'));
@@ -86,6 +94,8 @@ for (const topic of [null, 'ai-data-centers', 'blueprint-for-abundance']) test(`
     ] }) },
     '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation }, '../lib/curation.js': { curationFor: () => topic ? { slug: topic, path: '/summary', highlights: [] } : null, readerLink: () => '', publicOrigin: 'https://deep-dialogues.ideaflow.app' },
     '../lib/reader-overview.js': { renderReaderOverview: () => '', pinnedExchangeFor: () => null, renderPinnedExchange: () => '' },
+    '../lib/reader-excerpt.js': { excerptFor: () => null, renderReaderExcerpt: () => '' },
+    '../lib/reader-navigation.js': await navigationImports(),
     '../lib/reader-tools.js': { attachReaderTools: () => () => {} }
   });
   await reader.renderReader(container, { slug: 'test' });
@@ -113,6 +123,8 @@ test('prompts-only hides the pinned answer and restores its independent expansio
     '../lib/store.js': { getConversation: async () => conversation }, '../lib/paths.js': { appRoute }, '../lib/presentation.js': { presentConversation },
     '../lib/curation.js': { curationFor: () => abundanceSummary, readerLink },
     '../lib/reader-overview.js': { renderReaderOverview: () => '', pinnedExchangeFor, renderPinnedExchange: overview.renderPinnedExchange },
+    '../lib/reader-excerpt.js': { excerptFor: () => null, renderReaderExcerpt: () => '' },
+    '../lib/reader-navigation.js': await navigationImports(),
     '../lib/reader-tools.js': { attachReaderTools: () => () => {} }
   });
   await reader.renderReader(container, { slug: conversation.slug });
@@ -121,6 +133,21 @@ test('prompts-only hides the pinned answer and restores its independent expansio
   assert.equal(answer.hidden, true); assert.equal(transcriptAnswer.hidden, true); assert.equal(answer.open, true);
   click();
   assert.equal(answer.hidden, false); assert.equal(transcriptAnswer.hidden, false); assert.equal(answer.open, true);
+});
+
+test('chaptered transcript preserves all turn numbers and the Contents links reach its disclosures', { skip: !SourceTextModule }, async () => {
+  const navigation = await navigationImports();
+  const conversation = { slug: 'waves', ai_model: 'Astra', messages: Array.from({length:158}, (_,i)=>({role:i%2?'assistant':'human',content:`<p>Unchanged original turn ${i+1}</p>`})) };
+  const before = structuredClone(conversation);
+  const sections = navigation.navigationFor(conversation, {});
+  const transcript = navigation.renderTranscript(conversation, sections);
+  assert.deepEqual([...transcript.matchAll(/aria-label="Message (\d+),/g)].map(m=>Number(m[1])), Array.from({length:158},(_,i)=>i+1));
+  for (const message of conversation.messages) assert.equal(transcript.split(message.content).length - 1, 1);
+  for (const chapter of sections.chapters) assert.ok(transcript.includes(`id="${chapter.id}"`));
+  const contents = navigation.renderReaderNavigation(conversation, sections);
+  for (const chapter of sections.chapters) assert.ok(contents.includes(`data-reader-jump="${chapter.id}"`));
+  assert.equal((navigation.renderTranscript(conversation, sections, true).match(/class="dialogue-chapter"[^>]+ open>/g)||[]).length,12);
+  assert.deepEqual(conversation, before);
 });
 
 if (!SourceTextModule) test('browser module behavior regressions', () => {

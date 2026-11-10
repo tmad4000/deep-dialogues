@@ -118,6 +118,19 @@ function sources are legacy, not the production API.
 
 ## Reading, highlights and sharing
 
+The Waves of Thought reader begins with Jacob’s previously reviewed six-message
+excerpt, followed by the complete original transcript. Each expandable excerpt
+turn links to its original message; the separate highlights URL remains available.
+Highlights and the original are collapsible. A sticky navigation bar opens a
+table of contents with three highlights themes and twelve original chapters.
+Chapter links (`?section=chapter-thought-waves`, for example) reveal their section;
+existing message/quote links reveal all enclosing disclosures. `?full=1` opens
+the complete original and all its chapters. Chapter headings are editorial labels;
+the original turns remain in their existing order.
+The versioned excerpt is a presentation layer and is suppressed if any of its
+source turns or attributions change. Transcript text and message destinations
+are preserved.
+
 The public reader accepts `/read/:slug` and the existing `/#/read/:slug` links.
 Every message has a stable `message-N` destination; headings add a normalized
 heading suffix. Link buttons copy public URLs with `?at=...`. Selected passages
