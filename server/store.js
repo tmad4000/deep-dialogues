@@ -127,8 +127,8 @@ export function openStore(filename) {
           const picks = [...new Set(highlights)].filter(i => Number.isInteger(i) && i >= 0 && i < row.messages.length).sort((a, b) => a - b);
           if (!picks.length) return { error: 'highlights_required' };
           if (picks.length === row.messages.length) return { error: 'highlights_must_be_subset' };
-          const { contributor_name, ai_model, tags, original_url } = row;
-          highlightRow = save({ contributor_name, ai_model, tags, original_url, title: (highlightsTitle && String(highlightsTitle).trim().slice(0, 300)) || `${row.title} · Highlights`,
+          const { contributor_name, ai_model, tags, original_url, submitted_by } = row;
+          highlightRow = save({ contributor_name, ai_model, tags, original_url, submitted_by, title: (highlightsTitle && String(highlightsTitle).trim().slice(0, 300)) || `${row.title} · Highlights`,
             slug: uniqueSlug(`${row.slug.replace(/-highlights(-\d+)?$/, '')}-highlights`.slice(0, 120)),
             messages: picks.map(i => row.messages[i]), highlight_source_indices: picks, created_at: now }, 'published');
           if (version === 'highlights') delete highlightRow.original_url;

@@ -52,9 +52,10 @@ Reading never needs an account. Ideaflow ID (`https://id.ideaflow.app/api/auth`;
 the bare origin is not the issuer) is the OpenID Connect provider: authorization
 code flow with PKCE (S256), `client_secret_basic`, and EdDSA-signed ID tokens
 verified with Node's own crypto (no auth dependency). Sessions are opaque random
-`dd_session` cookies (HttpOnly, Secure, SameSite=Lax, 30 days); only their SHA-256
-hash is stored, in the `sessions` table. Without client credentials the site runs
-signed out and `/auth/login` returns 503.
+`dd_session` cookies (HttpOnly, SameSite=Lax, 30 days, and Secure except on an
+explicit HTTP development origin); only their SHA-256 hash is stored in the
+`sessions` table. Without client credentials the site runs signed out and
+`/auth/login` returns 503.
 
 - **Contributors:** a signed-in, same-origin upload records the Ideaflow subject,
   name and email as private `submitted_by` and defaults the credit to their name.
@@ -69,10 +70,11 @@ signed out and `/auth/login` returns 503.
   contributor) and unpublish are also available.
 - Account routes (`/api/me`, `/api/my/*`, `/api/admin/*`) send no CORS headers;
   writes require this site's `Origin` and `X-Requested-With: deep-dialogues`.
+  HTTP development also permits localhost and 127.0.0.1 origins.
 
 Environment (production: root-owned mode-600 `/etc/deep-dialogues.env`):
 `IDEAFLOW_CLIENT_ID`, `IDEAFLOW_CLIENT_SECRET`, `PUBLIC_BASE_URL`
-(`https://deep-dialogues.ideaflow.app`, which fixes the redirect URI
+(`https://deep-dialogues.ideaflow.app`, which defaults the redirect URI to
 `/auth/callback`), `DD_ADMIN_SUBS`, `DD_ADMIN_EMAILS`, `NOOS_API_URL`,
 `NOOS_API_KEY`. The client is registered as first-party application
 `deep-dialogues` (environment `production`) with ideaflow-auth's
@@ -80,6 +82,9 @@ Environment (production: root-owned mode-600 `/etc/deep-dialogues.env`):
 the M4 and backups in Secret Manager (`boreal-conquest-464203-v2`):
 `deep-dialogues-oidc-client-id`, `deep-dialogues-oidc-client-secret`,
 `deep-dialogues-noos-api-key`.
+For another OIDC deployment, `IDEAFLOW_ISSUER` and `IDEAFLOW_REDIRECT_URI`
+override the issuer and callback URI. Set `PUBLIC_BASE_URL` to the site's origin
+for same-origin account requests and local HTTP development.
 
 ## Noos
 
@@ -92,8 +97,9 @@ lists, plus `#deep-dialogues` and one per model. Pending, rejected and private
 rows are never sent; unpublishing queues the note to be made private. The `noos_sync` table
 records node IDs and content digests, so unchanged syncs write nothing. Reviews
 queue a background sync, the service reconciles on start, and a Noos outage is recorded
-and retried without blocking review. Until a failed unpublish sync succeeds, a previously
-public Noos note may remain public. Manual: `node server/manage.js noos-sync [SLUG]`.
+and retried every five minutes without blocking review. Until a failed unpublish
+sync succeeds, a previously public Noos note may remain public. Manual:
+`node server/manage.js noos-sync [SLUG]`.
 
 The Noos People overlay was not used: it is owner-private by design and cannot
 hold public content.
@@ -158,8 +164,9 @@ responses at the load balancer with `curl --resolve` before changing the
 - `GET /api/conversations/:slug`: full published conversation
 - `POST /api/conversations`: submit to review queue (always pending)
 - `GET /api/contributors`: contributor counts
-- `GET /api/me`, `/api/my/submissions[/:slug]` (GET/PUT), `/api/admin/queue`,
-  `/api/admin/conversations/:slug[/review]`: same-origin account routes (see above)
+- `GET /api/me`, `GET /api/my/submissions`, `GET` or `PUT /api/my/submissions/:slug`,
+  `GET /api/admin/queue`, `GET /api/admin/conversations/:slug`, and
+  `POST /api/admin/conversations/:slug/review`: same-origin account routes (see above)
 - `GET /api/docs`: OpenAPI schema
 - `GET /llms.txt`: machine-readable usage
 
