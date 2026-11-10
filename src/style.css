@@ -1400,3 +1400,38 @@ mark.shared-highlight {background:var(--accent-ai-soft);box-shadow:0 2px 0 var(-
 .pinned-turn .message-body { margin: 16px 0; }
 .pinned-turn .pinned-question { font-family: var(--font-ui); font-size: 1rem; }
 .full-conversation[open] > summary { margin-bottom: 24px; }
+
+/* Dialogue contents use the reader's existing paper, ink, violet, and native disclosures. */
+.reader-navigation { position: sticky; top: var(--nav-height); z-index: 11; display: flex; align-items: center; gap: 8px; margin: 24px 0; padding: 8px 0; background: var(--bg); border-block: 1px solid var(--ink-15); font: 500 .8rem/1.5 var(--font-ui); }
+.reader-navigation > a, .reader-toc > summary { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; color: var(--ink-70); border-radius: 4px; }
+.reader-navigation > a:hover, .reader-toc > summary:hover, .reader-toc[open] > summary { color: var(--ink); background: var(--ink-04); }
+.reader-navigation > a:last-child { margin-left: auto; }
+.reader-toc > summary { list-style: none; cursor: pointer; font-size: inherit; }
+.reader-toc > summary::-webkit-details-marker { display: none; }
+.reader-toc > summary::after { content: '⌄'; margin-left: 8px; }
+.reader-toc[open] > summary::after { content: '⌃'; }
+.reader-toc-panel { position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100dvh - 160px); overflow-y: auto; overscroll-behavior: contain; padding: 24px; background: var(--bg-elevated); border: 1px solid var(--ink-15); border-radius: 6px; }
+.reader-toc-panel ol { list-style: none; padding: 0; margin: 4px 0 16px; }
+.reader-toc-panel li a { display: block; padding: 8px 12px; min-height: 44px; color: var(--ink-70); border-radius: 4px; }
+.reader-toc-panel a:hover { color: var(--accent-ai); background: var(--ink-04); }
+.reader-toc-panel li span { display: block; font: .65rem/1.5 var(--font-mono); color: var(--ink-70); margin-top: 2px; }
+.toc-group { font-weight: 600; margin-top: 16px; }
+.toc-group a { color: var(--ink); display: block; padding: 8px 12px; min-height: 44px; }
+.reader-section, .dialogue-chapter, .highlight-theme { scroll-margin-top: 136px; border-top: 1px solid var(--ink-15); margin: 24px 0; }
+.reader-section > summary, .dialogue-chapter > summary, .highlight-theme > summary { min-height: 56px; padding: 16px 0; }
+.reader-section > summary h2, .dialogue-chapter > summary h3, .highlight-theme > summary h3 { display: inline; font: 600 1rem/1.5 var(--font-ui); }
+.reader-section > summary > span, .dialogue-chapter > summary > span { display: block; font: .72rem/1.5 var(--font-mono); margin: 4px 0 0 16px; }
+.reader-section[open] > summary { margin-bottom: 16px; }
+.reader-section-body > h2 { font: 600 1.2rem/1.5 var(--font-ui); margin: 16px 0; }
+.highlight-theme > summary h3 { font-size: .9rem; }
+.highlight-theme .pinned-turn { margin-left: 16px; }
+.chapter-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.chapter-controls button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--ink-15); border-radius: 4px; background: var(--bg-elevated); color: var(--ink-70); cursor: pointer; font: 500 .75rem/1.5 var(--font-ui); }
+.chapter-controls button:hover { color: var(--ink); border-color: var(--accent-ai); }
+.original-conversation .reading-toolbar { position: static; }
+.dialogue-chapter .message:first-of-type { margin-top: 24px; }
+#reader-top { scroll-margin-top: var(--nav-height); }
+@media(max-width:600px) { .reader-navigation { gap: 0; }.reader-navigation > a, .reader-toc > summary { padding: 8px 10px; }.reader-toc-panel { padding: 16px; }.reader-section > summary h2 { font-size: .95rem; } }
+@media print { .reader-navigation, .chapter-controls { display: none; } }
+
+.reader-navigation > a { position: relative; z-index: 1; transform: translateZ(0); }
