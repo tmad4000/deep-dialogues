@@ -21,7 +21,7 @@ export function createApp(store, root, { authConfig = authConfigFromEnv(), auth 
   app.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://worldissuetracker.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self' https://api.allorigins.win https://worldissuetracker.com https://api.worldissuetracker.com https://storage.googleapis.com/world-issue-tracker-attachments-boreal-conquest-464203-v2/; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://worldissuetracker.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self' https://api.allorigins.win https://worldissuetracker.com https://api.worldissuetracker.com https://storage.googleapis.com/world-issue-tracker-attachments-boreal-conquest-464203-v2/ https://storage.googleapis.com/upload/storage/v1/b/world-issue-tracker-attachments-boreal-conquest-464203-v2/; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'");
     next();
   });
   app.use('/api', (req, res, next) => {
