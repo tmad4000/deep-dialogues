@@ -241,3 +241,9 @@ release does not introduce executable HTML uploads or change the content policy.
 Roll back code by restoring the previous `current` symlink and its
 `RELEASE_COMMIT`, then restart the dedicated service. No database migration or
 restore is needed for these reader changes; preserve new submissions.
+
+
+The footer shows the package version and relative update time from the deployed
+commit. `version.json` contains the same commit/time metadata. Tap the stamp or
+press Enter for exact local time, timezone and commit. Dirty or Git-less builds
+explicitly use build time; ordinary release rebuilds retain the commit time.
